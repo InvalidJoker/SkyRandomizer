@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -91,7 +92,29 @@ public class PlayerListener implements Listener {
             event.setCancelled(true);
             player.teleport(islandCenter.clone().add(0.5, 1, 0.5)
                     .setDirection(islandCenter.getDirection().setY(0)));
-            MessageUtils.send(player, "<red>Du kannst nur in einem Umkreis von 3 Blöcken um deine Insel bauen!");
+            MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 Blöcke von deiner Insel entfernen!");
+        }
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        Location blockLoc = event.getBlock().getLocation();
+
+        Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
+
+        int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
+        int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
+
+        if (Math.abs(deltaX) <= 3 && Math.abs(deltaZ) <= 3) {
+            return;
+        }
+
+        if (deltaX >= 4 && deltaZ == 0) {
+            updateDistance(player, Math.abs(deltaX));
+        } else {
+            event.setCancelled(true);
+            MessageUtils.send(player, "<red>Du darfst nur Blöcke auf deiner Insel abbauen!");
         }
     }
 

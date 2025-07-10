@@ -6,8 +6,6 @@ import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 

@@ -1,7 +1,5 @@
 package de.joker.randomizer.cache;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.data.PlayerData;
 
@@ -13,16 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlayerCache {
 
     private final Database database;
-    private final Cache<UUID, PlayerData> cache;
     private final Map<UUID, PlayerData> allPlayers = new ConcurrentHashMap<>();
 
     public PlayerCache(Database database) {
         this.database = database;
-        this.cache = Caffeine.newBuilder()
-                .maximumSize(1000)
-                .expireAfterWrite(Duration.ofMinutes(30))
-                .expireAfterAccess(Duration.ofMinutes(15))
-                .build();
 
         loadAllPlayersFromDatabase();
     }
@@ -43,7 +35,6 @@ public class PlayerCache {
 
                 PlayerData playerData = new PlayerData(uuid, name, maxDistance, islandX);
                 allPlayers.put(uuid, playerData);
-                cache.put(uuid, playerData);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -51,14 +42,8 @@ public class PlayerCache {
     }
 
     public synchronized PlayerData getPlayer(UUID uuid) {
-        PlayerData cached = cache.getIfPresent(uuid);
-        if (cached != null) {
-            return cached;
-        }
-
         PlayerData player = allPlayers.get(uuid);
         if (player != null) {
-            cache.put(uuid, player);
             return player;
         }
 
@@ -76,7 +61,6 @@ public class PlayerCache {
 
                 player = new PlayerData(uuid, name, maxDistance, islandX);
                 allPlayers.put(uuid, player);
-                cache.put(uuid, player);
                 return player;
             }
         } catch (SQLException e) {
@@ -96,7 +80,6 @@ public class PlayerCache {
         }
 
         allPlayers.put(uuid, player);
-        cache.put(uuid, player);
 
         try (Connection conn = database.getConnection()) {
             PreparedStatement ps = conn.prepareStatement("""
@@ -126,7 +109,6 @@ public class PlayerCache {
         }
 
         allPlayers.put(uuid, player);
-        cache.put(uuid, player);
 
         try (Connection conn = database.getConnection()) {
             PreparedStatement ps = conn.prepareStatement("""
@@ -150,7 +132,6 @@ public class PlayerCache {
         if (!allPlayers.containsKey(uuid)) {
             PlayerData newPlayer = new PlayerData(uuid, name, 0, 0);
             allPlayers.put(uuid, newPlayer);
-            cache.put(uuid, newPlayer);
 
             try (Connection conn = database.getConnection()) {
                 PreparedStatement ps = conn.prepareStatement("""
@@ -199,16 +180,7 @@ public class PlayerCache {
                 .orElse(0) + 7;
     }
 
-    public void invalidatePlayer(UUID uuid) {
-        cache.invalidate(uuid);
-    }
-
     public void invalidateAll() {
-        cache.invalidateAll();
-        loadAllPlayersFromDatabase();
-    }
-
-    public long getCacheSize() {
-        return cache.estimatedSize();
+        allPlayers.clear();
     }
 }
