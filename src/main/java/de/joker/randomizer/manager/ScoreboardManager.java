@@ -51,7 +51,6 @@ public class ScoreboardManager {
         List<PlayerData> topPlayers = ranking.getTop3();
 
         if (rank == null) {
-            // run again 2 seconds later if rank is null
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> showScoreboard(player), 40L);
             return;
         }
@@ -65,23 +64,32 @@ public class ScoreboardManager {
                         "<white>" + rank.getDistance() + " Blöcke"
                 )
         );
-        sidebar.line(1,
+        sidebar.line(2,
                 MessageUtils.parse("")
         );
-        sidebar.line(2,
+        sidebar.line(3,
                 MessageUtils.parse("<gray>Rangliste: <white>")
         );
         for (int i = 0; i < topPlayers.size(); i++) {
             PlayerData playerData = topPlayers.get(i);
-            String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<silver>" : (i == 2) ? "<bronze>" : "<white>";
-            // arrow left
+            String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
             String arrow = (playerData.getUuid().equals(player.getUniqueId())) ? " <green>←" : "";
-            sidebar.line(3 + i,
+            sidebar.line(4 + i,
                     MessageUtils.parse(
                             rankColor + (i + 1) + ". <white>" + playerData.getName() + " <gray>(" + playerData.getDistance() + " Blöcke)" + arrow
                     )
             );
         }
+
+        for (int i = topPlayers.size(); i < 3; i++) {
+            String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
+            sidebar.line(4 + i,
+                    MessageUtils.parse(
+                            rankColor + (i + 1) + ". <white> - <gray>(0 Blöcke)"
+                    )
+            );
+        }
+
 
         sidebar.addPlayer(player);
 

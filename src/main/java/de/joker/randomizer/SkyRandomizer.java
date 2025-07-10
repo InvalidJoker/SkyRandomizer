@@ -53,7 +53,6 @@ public class SkyRandomizer extends JavaPlugin {
             return;
         }
 
-
         serviceManager = new ServiceManager(database, this);
 
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());

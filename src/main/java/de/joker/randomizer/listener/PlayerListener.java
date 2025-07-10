@@ -82,18 +82,16 @@ public class PlayerListener implements Listener {
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
-        if (Math.abs(deltaX) <= 3 && Math.abs(deltaZ) <= 3) {
+        if (Math.abs(deltaX) <= 3 && deltaZ >= -3) {
+            int distance = Math.max(Math.abs(deltaX), Math.max(deltaZ, 0));
+            updateDistance(player, distance);
             return;
         }
 
-        if (deltaX >= 4 && deltaZ == 0) {
-            updateDistance(player, Math.abs(deltaX));
-        } else {
-            event.setCancelled(true);
-            player.teleport(islandCenter.clone().add(0.5, 1, 0.5)
-                    .setDirection(islandCenter.getDirection().setY(0)));
-            MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 Blöcke von deiner Insel entfernen!");
-        }
+        event.setCancelled(true);
+        player.teleport(islandCenter.clone().add(0.5, 1, 0.5)
+                .setDirection(islandCenter.getDirection().setY(0)));
+        MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 Blöcke von deiner Insel nach links, rechts oder hinten entfernen!");
     }
 
     @EventHandler
@@ -106,17 +104,16 @@ public class PlayerListener implements Listener {
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
-        if (Math.abs(deltaX) <= 3 && Math.abs(deltaZ) <= 3) {
+        if (Math.abs(deltaX) <= 3 && deltaZ >= -3) {
             return;
         }
 
-        if (deltaX >= 4 && deltaZ == 0) {
-            updateDistance(player, Math.abs(deltaX));
-        } else {
-            event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du darfst nur Blöcke auf deiner Insel abbauen!");
-        }
+        event.setCancelled(true);
+        player.teleport(islandCenter.clone().add(0.5, 1, 0.5)
+                .setDirection(islandCenter.getDirection().setY(0)));
+        MessageUtils.send(player, "<red>Du kannst keine Blöcke außerhalb deiner Insel abbauen!");
     }
+
 
     private void updateDistance(Player player, int currentX) {
         PlayerData playerData = serviceManager.getPlayerCache().getPlayer(player.getUniqueId());

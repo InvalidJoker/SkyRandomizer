@@ -9,7 +9,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 public class MessageUtils {
     private static final MiniMessage mm = MiniMessage.miniMessage();
     @Getter
-    private final static String name = "<gradient:#ff0000:#ff9900>Creative Hub</gradient>";
+    private final static String name = "<gradient:#ff0000:#ff9900>Randomizer</gradient>";
     private final static String prefix = name + "<color:#30303d> • <color:#b2c2d4>";
 
     public static Component parseWithPrefix(String message) {
