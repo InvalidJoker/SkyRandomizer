@@ -66,7 +66,7 @@ public class ItemSpawner {
 
         var items = reg.stream();
 
-        var item = items.skip(random.nextInt((int) reg.size())).findFirst().orElse(null);
+        var item = items.skip(random.nextInt(reg.size())).findFirst().orElse(null);
 
         if (item == null) {
             return ItemType.STONE;

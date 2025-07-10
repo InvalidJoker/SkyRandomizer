@@ -177,7 +177,7 @@ public class PlayerCache {
         return allPlayers.values().stream()
                 .mapToInt(PlayerData::getIslandX)
                 .max()
-                .orElse(0) + 7;
+                .orElse(0) + 8;
     }
 
     public void invalidateAll() {

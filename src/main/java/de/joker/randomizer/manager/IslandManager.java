@@ -32,18 +32,23 @@ public class IslandManager {
 
         int newIslandX = playerCache.getNextFreeIslandX();
 
-        generateIslandAt(newIslandX, 0);
+        generateIslandAt(newIslandX);
 
         playerCache.updatePlayerIsland(player.getUniqueId(), player.getName(), newIslandX);
 
         return new Location(getWorld(), newIslandX, 64, 0);
     }
 
-    private void generateIslandAt(int x, int z) {
+    private void generateIslandAt(int x) {
         int centerY = 64;
 
-        Location bedrock = new Location(getWorld(), x, centerY, z);
+        Location bedrock = new Location(getWorld(), x, centerY, 0);
         bedrock.getBlock().setType(Material.BEDROCK);
+
+        for (int y = centerY - 5; y <= centerY + 5; y++) {
+            Location barrierLocation = new Location(getWorld(), x + 4, y, 0);
+            barrierLocation.getBlock().setType(Material.BARRIER);
+        }
     }
 
     public Location getIslandLocation(org.bukkit.entity.Player player) {

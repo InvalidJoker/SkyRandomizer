@@ -7,14 +7,21 @@ import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.util.Vector;
+
+import java.util.Objects;
 
 @Slf4j
 public class PlayerListener implements Listener {
@@ -53,11 +60,22 @@ public class PlayerListener implements Listener {
         }
 
         if (to.getY() < 0.5) {
+            player.setFallDistance(0f);
+            player.setVelocity(new Vector(0, 0, 0));
             Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
             player.teleport(islandCenter.clone().add(0.5, 1, 0.5)
                     .setDirection(islandCenter.getDirection().setY(0)));
 
             MessageUtils.send(player, "<red>Du bist in die Leere gefallen! Du wirst zurück auf deine Insel teleportiert.");
+        }
+
+        Location islandCenter = serviceManager.getIslandManager().getIslandLocation(player);
+        int deltaX = to.getBlockX() - islandCenter.getBlockX();
+        int deltaZ = to.getBlockZ() - islandCenter.getBlockZ();
+        if (Math.abs(deltaX) > 3 || deltaZ < -3) {
+            player.teleport(islandCenter.clone().add(0.5, 1, 0.5)
+                    .setDirection(islandCenter.getDirection().setY(0)));
+            MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 Blöcke von deiner Insel nach links, rechts oder hinten entfernen!");
         }
     }
 
@@ -84,7 +102,7 @@ public class PlayerListener implements Listener {
 
         if (Math.abs(deltaX) <= 3 && deltaZ >= -3) {
             int distance = Math.max(Math.abs(deltaX), Math.max(deltaZ, 0));
-            updateDistance(player, distance);
+            updateDistance(player, distance, islandCenter.getBlockX(), blockLoc.getBlockZ());
             return;
         }
 
@@ -115,7 +133,7 @@ public class PlayerListener implements Listener {
     }
 
 
-    private void updateDistance(Player player, int currentX) {
+    private void updateDistance(Player player, int currentX, int fullX, int fullZ) {
         PlayerData playerData = serviceManager.getPlayerCache().getPlayer(player.getUniqueId());
 
         if (playerData == null) {
@@ -128,9 +146,24 @@ public class PlayerListener implements Listener {
         if (currentX > prevMax) {
             serviceManager.getRanking().updatePlayer(player.getUniqueId(), player.getName(), currentX);
 
-            scoreboardManager.updateForAllPlayers();
+            for (int y = 64 - 5; y <= 64 + 5; y++) {
+                Location barrierLocation = new Location(player.getWorld(), fullX + 4, y, fullZ);
+                barrierLocation.getBlock().setType(Material.BARRIER);
+            }
 
-            player.sendMessage("§aNeue Rekordweite erreicht: §e" + currentX + " §aBlöcke!"); // TODO: remove this line in production
+            scoreboardManager.updateForAllPlayers();
         }
+    }
+
+    @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        event.getEntity().setFoodLevel(20);
     }
 }
