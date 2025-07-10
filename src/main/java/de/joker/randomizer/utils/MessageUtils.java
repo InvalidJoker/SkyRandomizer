@@ -20,6 +20,8 @@ public class MessageUtils {
         return mm.deserialize(message).decoration(TextDecoration.ITALIC, false);
     }
 
+    publi
+
     public static void send(Audience audience, String message) {
         audience.sendMessage(parseWithPrefix(message));
     }

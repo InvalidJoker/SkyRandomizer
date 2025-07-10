@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,10 +17,9 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.util.Vector;
-
-import java.util.Objects;
 
 @Slf4j
 public class PlayerListener implements Listener {
@@ -46,8 +44,19 @@ public class PlayerListener implements Listener {
                     islandCenter.clone().add(0.5, 1, 0.5)
                             .setDirection(islandCenter.getDirection().setY(0))
             );
+            PlayerData playerData = serviceManager.getPlayerCache().getPlayer(player.getUniqueId());
+            if (playerData != null && playerData.getDistance() < 4) {
+                serviceManager.getIslandManager().createBuildDisplay(player, islandCenter.getBlockX());
+            }
             scoreboardManager.showScoreboard(player);
         }, 1L);
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        serviceManager.getIslandManager().removeDisplay(player);
+        scoreboardManager.removeScoreboard(player);
     }
 
     @EventHandler
@@ -144,6 +153,9 @@ public class PlayerListener implements Listener {
         int prevMax = playerData.getDistance();
 
         if (currentX > prevMax) {
+            if (currentX >= 4 && prevMax < 4) {
+                serviceManager.getIslandManager().removeDisplay(player);
+            }
             serviceManager.getRanking().updatePlayer(player.getUniqueId(), player.getName(), currentX);
 
             for (int y = 64 - 5; y <= 64 + 5; y++) {

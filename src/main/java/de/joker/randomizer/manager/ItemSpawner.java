@@ -20,14 +20,14 @@ public class ItemSpawner {
     private final Random random = new Random();
 
     private final BossBar bossBar;
-    private int secondsUntilNextItem = 10;
-    private final int maxSecondsUntilNextItem = 10;
+    private int secondsUntilNextItem = 5;
+    private final int maxSecondsUntilNextItem = 5;
 
 
     public ItemSpawner(SkyRandomizer plugin, IslandManager islandManager) {
         this.plugin = plugin;
         this.islandManager = islandManager;
-        this.bossBar = BossBar.bossBar(MessageUtils.parse("Nächstes Item"), 1.0f, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
+        this.bossBar = BossBar.bossBar(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Nächstes Item " + secondsUntilNextItem + "s"), 1.0f, BossBar.Color.GREEN, BossBar.Overlay.PROGRESS);
     }
 
     public void start() {
@@ -35,6 +35,7 @@ public class ItemSpawner {
             @Override
             public void run() {
                 bossBar.progress(Math.max(0, secondsUntilNextItem / (float) maxSecondsUntilNextItem));
+                bossBar.name(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Nächstes Item " + secondsUntilNextItem + "s"));
 
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     bossBar.addViewer(player);

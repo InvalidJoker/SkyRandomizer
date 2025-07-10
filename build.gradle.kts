@@ -15,6 +15,7 @@ version = "1.0-SNAPSHOT"
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.dmulloy2.net/repository/public/")
 }
 
 dependencies {
@@ -29,6 +30,8 @@ dependencies {
     implementation("net.megavex:scoreboard-library-api:2.3.3")
     runtimeOnly("net.megavex:scoreboard-library-implementation:2.3.3")
     runtimeOnly("net.megavex:scoreboard-library-modern:2.3.3:mojmap")
+
+    compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
 }
 
 
