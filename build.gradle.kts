@@ -15,6 +15,8 @@ version = "1.0-SNAPSHOT"
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
+    maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
 }
 
 dependencies {
@@ -29,6 +31,8 @@ dependencies {
     implementation("net.megavex:scoreboard-library-api:2.3.3")
     runtimeOnly("net.megavex:scoreboard-library-implementation:2.3.3")
     runtimeOnly("net.megavex:scoreboard-library-modern:2.3.3:mojmap")
+
+    compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
 }
 
 

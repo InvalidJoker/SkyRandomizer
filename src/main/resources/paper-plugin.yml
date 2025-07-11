@@ -3,3 +3,11 @@ version: '${version}'
 main: de.joker.randomizer.SkyRandomizer
 api-version: '1.21'
 load: STARTUP
+authors:
+  - 'InvalidJoker'
+
+dependencies:
+  server:
+    packetevents:
+      required: true
+      load: BEFORE

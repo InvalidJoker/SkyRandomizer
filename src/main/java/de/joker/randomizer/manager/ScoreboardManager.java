@@ -1,5 +1,6 @@
 package de.joker.randomizer.manager;
 
+import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.data.PlayerData;
 import de.joker.randomizer.data.PlayerRank;
 import de.joker.randomizer.data.Ranking;
@@ -16,16 +17,14 @@ import java.util.Map;
 @Slf4j
 public class ScoreboardManager {
 
-    private final JavaPlugin plugin;
+    private final SkyRandomizer plugin;
     private final Ranking ranking;
-    private final ScoreboardLibrary scoreboardLibrary;
     private final Map<Player, Sidebar> scoreboards;
 
-    public ScoreboardManager(JavaPlugin plugin, Ranking ranking, ScoreboardLibrary scoreboardLibrary) {
+    public ScoreboardManager(SkyRandomizer plugin, Ranking ranking) {
         this.plugin = plugin;
         this.ranking = ranking;
         this.scoreboards = new java.util.HashMap<>();
-        this.scoreboardLibrary = scoreboardLibrary;
     }
 
     public void updateForAllPlayers() {
@@ -36,10 +35,18 @@ public class ScoreboardManager {
         }
     }
 
+    public void removeScoreboard(Player player) {
+        Sidebar sidebar = scoreboards.remove(player);
+        if (sidebar != null) {
+            sidebar.removePlayer(player);
+            log.debug("Removed scoreboard for player: {}", player.getName());
+        }
+    }
+
     public void showScoreboard(Player player) {
         Sidebar sidebar = scoreboards.get(player);
         if (sidebar == null) {
-            sidebar = scoreboardLibrary.createSidebar();
+            sidebar = plugin.getScoreboardLibrary().createSidebar();
             scoreboards.put(player, sidebar);
         }
 

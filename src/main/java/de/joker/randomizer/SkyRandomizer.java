@@ -1,24 +1,22 @@
 package de.joker.randomizer;
 
-import de.joker.randomizer.cache.PlayerCache;
 import de.joker.randomizer.data.Database;
-import de.joker.randomizer.data.Ranking;
 import de.joker.randomizer.listener.PlayerListener;
-import de.joker.randomizer.manager.IslandManager;
 import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.VoidGenerator;
+import lombok.Getter;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
 import net.megavex.scoreboardlibrary.api.exception.NoPacketAdapterAvailableException;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jspecify.annotations.Nullable;
 
 import java.sql.SQLException;
 
+@Getter
 public class SkyRandomizer extends JavaPlugin {
     private ServiceManager serviceManager;
     private ScoreboardLibrary scoreboardLibrary;
@@ -56,7 +54,7 @@ public class SkyRandomizer extends JavaPlugin {
         serviceManager = new ServiceManager(database, this);
 
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
-        ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking(), scoreboardLibrary);
+        ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager), this);
 
