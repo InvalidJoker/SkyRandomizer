@@ -102,6 +102,12 @@ public class PlayerListener implements Listener {
         Location blockLoc = event.getBlockPlaced().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
 
+        if (blockLoc.getBlockX() == islandCenter.getBlockX() && blockLoc.getBlockZ() == islandCenter.getBlockZ()) {
+            event.setCancelled(true);
+            MessageUtils.send(player, "<red>Du kannst nicht direkt auf dem Spawn-Block bauen!");
+            return;
+        }
+
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
