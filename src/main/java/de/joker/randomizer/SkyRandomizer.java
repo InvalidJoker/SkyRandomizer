@@ -1,6 +1,7 @@
 package de.joker.randomizer;
 
 import de.joker.randomizer.data.Database;
+import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
 import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
@@ -23,7 +24,7 @@ public class SkyRandomizer extends JavaPlugin {
 
     @Override
     public @Nullable ChunkGenerator getDefaultWorldGenerator(String worldName, @Nullable String id) {
-        Bukkit.getLogger().info("Using VoidGenerator for world: " + worldName);
+        getLogger().info("Using VoidGenerator for world: " + worldName);
         return new VoidGenerator();
     }
 
@@ -56,6 +57,7 @@ public class SkyRandomizer extends JavaPlugin {
         ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager), this);
+        Bukkit.getPluginManager().registerEvents(new ExtraProtectionListener(serviceManager), this);
 
         itemSpawner.start();
     }
