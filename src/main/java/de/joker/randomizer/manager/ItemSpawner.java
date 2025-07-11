@@ -1,5 +1,6 @@
 package de.joker.randomizer.manager;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import de.cytooxien.realms.api.RealmInformationProvider;
 import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.utils.MessageUtils;
@@ -16,7 +17,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
+@SuppressWarnings("UnstableApiUsage")
 @Slf4j
 public class ItemSpawner {
 
@@ -91,10 +94,20 @@ public class ItemSpawner {
         );
     }
 
+    private static final Set<ItemType> BLACKLIST = Set.of(
+            ItemType.BARRIER,
+            ItemType.DEBUG_STICK,
+            ItemType.COMMAND_BLOCK,
+            ItemType.STRUCTURE_VOID,
+            ItemType.BEDROCK,
+            ItemType.AIR,
+            ItemType.PLAYER_HEAD
+    );
+
     private ItemType getRandomMaterial() {
         var reg = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM);
-        var items = reg.stream();
-        var item = items.skip(random.nextInt(reg.size())).findFirst().orElse(null);
-        return item != null ? item : ItemType.STONE;
+        var items = reg.stream()
+                .filter(item -> !BLACKLIST.contains(item) && item != ItemTypes.AIR);
+        return items.skip(random.nextInt(reg.size())).findFirst().orElse(ItemType.STONE);
     }
 }
