@@ -86,29 +86,28 @@ public class IslandManager {
         int entityId = nextEntityId++;
 
         double y = player.getEyeLocation().getY();
-        double z = 5.0;
+        double z = 6.0;
         Location location = new Location(player.getWorld(), islandX, y, z);
 
         WrapperPlayServerSpawnEntity spawnPacket = new WrapperPlayServerSpawnEntity(
                 entityId,
                 Optional.of(UUID.randomUUID()),
                 EntityTypes.TEXT_DISPLAY,
-                new Vector3d(location.getX(), location.getY(), location.getZ()),
-                location.getPitch(),
-                location.getYaw(),
-                location.getYaw(),
+                new Vector3d(location.getX() + 0.5, location.getY(), location.getZ()),
+                0.0f,
+                180.0f,
+                180.0f,
                 0,
                 Optional.of(new Vector3d(0.0, 0.0, 0.0))
         );
 
         List<EntityData> metadata = new ArrayList<>();
 
-        //metadata.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x00));
+        metadata.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x00));
 
         Component adventureComponent = MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Baue in dieser Richtung um Punkte zu sammeln!");
 
         metadata.add(new EntityData(23, EntityDataTypes.ADV_COMPONENT, adventureComponent));
-
 
 
         WrapperPlayServerEntityMetadata metadataPacket =
