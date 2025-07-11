@@ -15,6 +15,7 @@ public class ServiceManager {
     private final Ranking ranking;
     private final IslandManager islandManager;
     private final SkyRandomizer plugin;
+    private final TranslationManager translator;
 
     public ServiceManager(Database database, SkyRandomizer plugin) {
         this.database = database;
@@ -22,6 +23,7 @@ public class ServiceManager {
         this.ranking = new Ranking(playerCache);
         this.islandManager = new IslandManager(playerCache);
         this.plugin = plugin;
+        this.translator = new TranslationManager();
     }
 
     public void shutdown() {
