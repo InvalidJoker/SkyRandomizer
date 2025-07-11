@@ -32,6 +32,7 @@ public class ItemSpawner {
 
     private final Map<Player, Integer> playerTimers = new HashMap<>();
     private final Map<Player, BossBar> bossBars = new HashMap<>();
+    private static final int MAX_ITEMS_PER_BLOCK = 10;
 
     public ItemSpawner(SkyRandomizer plugin, IslandManager islandManager) {
         this.plugin = plugin;
@@ -47,13 +48,13 @@ public class ItemSpawner {
                     if (informationProvider == null) {
                         informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
                     }
-                    int maxTime = 5;
+                    int maxTime = 15;
                     if (informationProvider != null) {
                          int boosts = informationProvider.boostsByPlayer(player.getUniqueId()).value();
                          maxTime = switch (boosts) {
-                             case 0 -> 5;
-                             case 1 -> 4;
-                             default -> 3;
+                             case 0 -> 15;
+                             case 1 -> 12;
+                             default -> 10;
                          };
                     } else {
                         log.warn("RealmInformationProvider not found, using default maxTime.");
@@ -86,14 +87,21 @@ public class ItemSpawner {
             }
         }.runTaskTimer(plugin, 0L, 20L);
     }
-
     private void spawnRandomItem(Player player) {
         Location island = islandManager.getOrCreateIsland(player);
+        Location spawnLocation = island.clone().add(0.5, 1.25, 0.5);
+
+        int itemCount = (int) spawnLocation.getWorld().getNearbyEntities(spawnLocation, 1.0, 1.0, 1.0)
+                .stream()
+                .filter(entity -> entity instanceof Item)
+                .count();
+
+        if (itemCount >= MAX_ITEMS_PER_BLOCK) {
+            return;
+        }
+
         ItemType randomItem = getRandomMaterial();
-        Item item = island.getWorld().dropItem(
-                island.clone().add(0.5, 1.25, 0.5),
-                randomItem.createItemStack(1)
-        );
+        Item item = island.getWorld().dropItem(spawnLocation, randomItem.createItemStack(1));
         item.setVelocity(new Vector(0.0, 0.0, 0.0));
     }
 
