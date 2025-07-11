@@ -99,9 +99,14 @@ public class ItemSpawner {
             ItemType.DEBUG_STICK,
             ItemType.COMMAND_BLOCK,
             ItemType.STRUCTURE_VOID,
+            ItemType.STRUCTURE_BLOCK,
             ItemType.BEDROCK,
             ItemType.AIR,
-            ItemType.PLAYER_HEAD
+            ItemType.PLAYER_HEAD,
+            ItemType.CHAIN_COMMAND_BLOCK,
+            ItemType.REPEATING_COMMAND_BLOCK,
+            ItemType.JIGSAW,
+            ItemType.COMMAND_BLOCK_MINECART
     );
 
     private ItemType getRandomMaterial() {
