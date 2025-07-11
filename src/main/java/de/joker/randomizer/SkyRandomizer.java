@@ -29,7 +29,6 @@ public class SkyRandomizer extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // create data folder if it doesn't exist
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }

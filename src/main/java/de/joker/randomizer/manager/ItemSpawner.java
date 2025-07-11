@@ -60,6 +60,8 @@ public class ItemSpawner {
                     playerTimers.putIfAbsent(player, maxTime);
                     int secondsLeft = playerTimers.get(player);
 
+                    secondsLeft--;
+
                     BossBar bar = bossBars.computeIfAbsent(player, p -> BossBar.bossBar(
                             MessageUtils.parse(""),
                             1.0f,
@@ -69,10 +71,8 @@ public class ItemSpawner {
 
                     float progress = Math.max(0f, secondsLeft / (float) maxTime);
                     bar.progress(progress);
-                    bar.name(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Nächstes Item " + secondsLeft + "s"));
+                    bar.name(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Nächstes Item in " + secondsLeft + "s"));
                     bar.addViewer(player);
-
-                    secondsLeft--;
 
                     if (secondsLeft <= 0) {
                         spawnRandomItem(player);
@@ -88,8 +88,8 @@ public class ItemSpawner {
     private void spawnRandomItem(Player player) {
         Location island = islandManager.getOrCreateIsland(player);
         ItemType randomItem = getRandomMaterial();
-        island.getWorld().dropItemNaturally(
-                island.clone().add(0.0, 1.5, 0.0),
+        island.getWorld().dropItem(
+                island.clone().add(0.5, 1, 0.5),
                 randomItem.createItemStack(1)
         );
     }
