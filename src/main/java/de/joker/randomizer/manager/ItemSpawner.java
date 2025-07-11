@@ -10,9 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,10 +90,11 @@ public class ItemSpawner {
     private void spawnRandomItem(Player player) {
         Location island = islandManager.getOrCreateIsland(player);
         ItemType randomItem = getRandomMaterial();
-        island.getWorld().dropItem(
-                island.clone().add(0.5, 1, 0.5),
+        Item item = island.getWorld().dropItem(
+                island.clone().add(0.5, 1.25, 0.5),
                 randomItem.createItemStack(1)
         );
+        item.setVelocity(new Vector(0.0, 0.0, 0.0));
     }
 
     private static final Set<ItemType> BLACKLIST = Set.of(
