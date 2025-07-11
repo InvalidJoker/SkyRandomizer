@@ -17,6 +17,7 @@ repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
     maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
     maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
@@ -33,6 +34,7 @@ dependencies {
     runtimeOnly("net.megavex:scoreboard-library-modern:2.3.3:mojmap")
 
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
+    compileOnly("com.github.cytooxien:realms-api:3.0-20240519193357")
 }
 
 

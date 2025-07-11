@@ -62,7 +62,6 @@ public class ScoreboardManager {
             return;
         }
 
-
         sidebar.line(0,
                 MessageUtils.parse("<gray>Distanz: <white>")
         );
@@ -80,10 +79,10 @@ public class ScoreboardManager {
         for (int i = 0; i < topPlayers.size(); i++) {
             PlayerData playerData = topPlayers.get(i);
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            String arrow = (playerData.getUuid().equals(player.getUniqueId())) ? " <green>←" : "";
+            String playerColor = playerData.getUuid().equals(player.getUniqueId()) ? "<green>" : "<white>";
             sidebar.line(4 + i,
                     MessageUtils.parse(
-                            rankColor + (i + 1) + ". <white>" + playerData.getName() + " <gray>(" + playerData.getDistance() + " Blöcke)" + arrow
+                            rankColor + (i + 1) + ". " + playerColor + playerData.getName() + " <gray>(" + playerData.getDistance() + " Blöcke)"
                     )
             );
         }
@@ -96,7 +95,6 @@ public class ScoreboardManager {
                     )
             );
         }
-
 
         sidebar.addPlayer(player);
 

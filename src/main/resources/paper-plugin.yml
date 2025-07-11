@@ -11,3 +11,7 @@ dependencies:
     packetevents:
       required: true
       load: BEFORE
+
+    Realms-API:
+      required: true
+      load: BEFORE
