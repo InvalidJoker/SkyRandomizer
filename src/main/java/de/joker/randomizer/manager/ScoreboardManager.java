@@ -27,7 +27,6 @@ public class ScoreboardManager {
     }
 
     public void updateForAllPlayers() {
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             showScoreboard(player);
             log.debug("Updated scoreboard for player: {}", player.getName());

@@ -50,12 +50,12 @@ public class ItemSpawner {
                     }
                     int maxTime = 15;
                     if (informationProvider != null) {
-                         int boosts = informationProvider.boostsByPlayer(player.getUniqueId()).value();
-                         maxTime = switch (boosts) {
-                             case 0 -> 15;
-                             case 1 -> 12;
-                             default -> 10;
-                         };
+                        int boosts = informationProvider.boostsByPlayer(player.getUniqueId()).value();
+                        maxTime = switch (boosts) {
+                            case 0 -> 15;
+                            case 1 -> 12;
+                            default -> 10;
+                        };
                     } else {
                         log.warn("RealmInformationProvider not found, using default maxTime.");
                     }
@@ -63,7 +63,15 @@ public class ItemSpawner {
                     playerTimers.putIfAbsent(player, maxTime);
                     int secondsLeft = playerTimers.get(player);
 
-                    secondsLeft--;
+                    Location island = islandManager.getOrCreateIsland(player);
+                    Location spawnLocation = island.clone().add(0.5, 1.25, 0.5);
+
+                    int itemCount = (int) spawnLocation.getWorld().getNearbyEntities(spawnLocation, 1.0, 1.0, 1.0)
+                            .stream()
+                            .filter(entity -> entity instanceof Item)
+                            .count();
+
+                    boolean isBlocked = itemCount >= MAX_ITEMS_PER_BLOCK;
 
                     BossBar bar = bossBars.computeIfAbsent(player, p -> BossBar.bossBar(
                             MessageUtils.parse(""),
@@ -72,17 +80,27 @@ public class ItemSpawner {
                             BossBar.Overlay.PROGRESS
                     ));
 
-                    float progress = Math.max(0f, secondsLeft / (float) maxTime);
-                    bar.progress(progress);
-                    bar.name(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Nächstes Item in " + secondsLeft + "s"));
-                    bar.addViewer(player);
+                    if (isBlocked) {
+                        bar.progress(1.0f);
+                        bar.name(MessageUtils.parse("<gradient:#FF6B6B:#FF8E8E>Spawner blockiert! Sammle deine Items!"));
+                        bar.color(BossBar.Color.RED);
+                    } else {
+                        secondsLeft--;
 
-                    if (secondsLeft <= 0) {
-                        spawnRandomItem(player);
-                        secondsLeft = maxTime;
+                        float progress = Math.max(0f, secondsLeft / (float) maxTime);
+                        bar.progress(progress);
+                        bar.name(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Nächstes Item in " + secondsLeft + "s"));
+                        bar.color(BossBar.Color.GREEN);
+
+                        if (secondsLeft <= 0) {
+                            spawnRandomItem(player);
+                            secondsLeft = maxTime;
+                        }
+
+                        playerTimers.put(player, secondsLeft);
                     }
 
-                    playerTimers.put(player, secondsLeft);
+                    bar.addViewer(player);
                 }
             }
         }.runTaskTimer(plugin, 0L, 20L);

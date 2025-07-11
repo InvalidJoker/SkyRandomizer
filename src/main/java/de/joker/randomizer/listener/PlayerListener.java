@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -128,6 +129,15 @@ public class PlayerListener implements Listener {
 
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
+
+        Location checkLocation = blockLoc.clone().add(0, 0, 1);
+        Block checkBlock = checkLocation.getBlock();
+
+        if (checkBlock.getType() != Material.AIR && checkBlock.getType() != Material.BEDROCK) {
+            event.setCancelled(true);
+            MessageUtils.send(player, "<red>Du kannst keine Blöcke abbauen, die mit deiner Insel verbunden sind!");
+            return;
+        }
 
         if (Math.abs(deltaX) <= 3 && deltaZ >= -3) {
             return;
