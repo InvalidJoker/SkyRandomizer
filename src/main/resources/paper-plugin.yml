@@ -8,6 +8,6 @@ authors:
 
 dependencies:
   server:
-    ProtocolLib:
+    packetevents:
       required: true
       load: BEFORE

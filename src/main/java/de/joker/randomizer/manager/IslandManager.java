@@ -1,37 +1,35 @@
 package de.joker.randomizer.manager;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedDataValue;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
 import de.joker.randomizer.cache.PlayerCache;
 import de.joker.randomizer.data.PlayerData;
 import de.joker.randomizer.utils.MessageUtils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class IslandManager {
 
     private final PlayerCache playerCache;
     private final Map<UUID, Integer> textDisplays;
+    private int nextEntityId = 2_000_000;
 
     public IslandManager(PlayerCache playerCache) {
         this.playerCache = playerCache;
-        this.textDisplays = new java.util.HashMap<>();
+        this.textDisplays = new ConcurrentHashMap<>();
     }
 
     private World getWorld() {
@@ -84,57 +82,51 @@ public class IslandManager {
     }
 
 
-    public void createBuildDisplay(Player p, int islandX) {
-        Random random = new Random();
+    public void createBuildDisplay(Player player, int islandX) {
+        int entityId = nextEntityId++;
 
-        double playerLoc = p.getEyeHeight();
+        double y = player.getEyeLocation().getY();
+        double z = 5.0;
+        Location location = new Location(player.getWorld(), islandX, y, z);
 
-        Location spawnLoc = new Location(
-                getWorld(),
-                islandX,
-                playerLoc,
-                4
+        WrapperPlayServerSpawnEntity spawnPacket = new WrapperPlayServerSpawnEntity(
+                entityId,
+                Optional.of(UUID.randomUUID()),
+                EntityTypes.TEXT_DISPLAY,
+                new Vector3d(location.getX(), location.getY(), location.getZ()),
+                location.getPitch(),
+                location.getYaw(),
+                location.getYaw(),
+                0,
+                Optional.of(new Vector3d(0.0, 0.0, 0.0))
         );
 
-        int entityID = random.nextInt();
+        List<EntityData> metadata = new ArrayList<>();
 
-        PacketContainer textDisplay = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY);
-        textDisplay.getIntegers().write(0, entityID);
-        textDisplay.getEntityTypeModifier().write(0, EntityType.TEXT_DISPLAY);
-        textDisplay.getUUIDs().write(0, UUID.randomUUID());
-        textDisplay.getDoubles().write(0, spawnLoc.getX());
-        textDisplay.getDoubles().write(1, spawnLoc.getY());
-        textDisplay.getDoubles().write(2, spawnLoc.getZ());
-        ProtocolLibrary.getProtocolManager().sendServerPacket(p, textDisplay);
+        //metadata.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x00));
 
-        PacketContainer textDisplayData = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
-        textDisplayData.getIntegers().write(0, entityID);
+        Component adventureComponent = MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Baue in dieser Richtung um Punkte zu sammeln!");
 
-        Component msg = MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Baue in dieser Richtung um Punkte zu sammeln!");
+        metadata.add(new EntityData(23, EntityDataTypes.ADV_COMPONENT, adventureComponent));
 
-        GsonComponentSerializer.gson().serialize(msg);
 
-        List<WrappedDataValue> dataValues = List.of(
-                new WrappedDataValue(15, WrappedDataWatcher.Registry.get(Byte.class), (byte) 0x03),
-                new WrappedDataValue(23, WrappedDataWatcher.Registry.getChatComponentSerializer(),
-                        WrappedChatComponent.fromJson(GsonComponentSerializer.gson().serialize(msg)))
-        );
-        textDisplayData.getDataValueCollectionModifier().write(0, dataValues);
-        ProtocolLibrary.getProtocolManager().sendServerPacket(p, textDisplayData);
 
-        textDisplays.put(p.getUniqueId(), entityID);
+        WrapperPlayServerEntityMetadata metadataPacket =
+                new WrapperPlayServerEntityMetadata(entityId, metadata);
+
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, spawnPacket);
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, metadataPacket);
+
+        textDisplays.put(player.getUniqueId(), entityId);
     }
 
     public void removeDisplay(Player player) {
         Integer entityId = textDisplays.remove(player.getUniqueId());
         if (entityId != null) {
-            PacketContainer destroyDisplay = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-            destroyDisplay.getIntLists().write(0, List.of(entityId));
-            try {
-                ProtocolLibrary.getProtocolManager().sendServerPacket(player, destroyDisplay);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            WrapperPlayServerDestroyEntities destroyPacket =
+                    new WrapperPlayServerDestroyEntities(entityId);
+
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
         }
     }
 }
