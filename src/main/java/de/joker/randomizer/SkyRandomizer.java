@@ -3,6 +3,7 @@ package de.joker.randomizer;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
+import de.joker.randomizer.listener.ServerListener;
 import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
@@ -58,6 +59,7 @@ public class SkyRandomizer extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager), this);
         Bukkit.getPluginManager().registerEvents(new ExtraProtectionListener(serviceManager), this);
+        Bukkit.getPluginManager().registerEvents(new ServerListener(), this);
 
         itemSpawner.start();
     }

@@ -1,6 +1,6 @@
 # SkyRandomizer
-> A Minecraft plugin which recreates the BastiGHG Challenge "30 SEKUNDEN = NEUES ITEM" from [Youtube](https://www.youtube.com/watch?v=X1rXPrWWMGw).
-
+> A Minecraft plugin inspired by the BastiGHG Challenge "30 SEKUNDEN = NEUES ITEM"
+> Watch the original challenge on [YouTube](https://www.youtube.com/watch?v=X1rXPrWWMGw).
 ## Installation
 1. Clone the repository
 2. Build the project with `./gradlew build`

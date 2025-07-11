@@ -53,6 +53,8 @@ public class PlayerListener implements Listener {
 
             scoreboardManager.showScoreboard(player);
         }, 1L);
+
+        event.joinMessage(MessageUtils.parse("<green>" + player.getName() + " <gray>ist dem Spiel beigetreten!"));
     }
 
     @EventHandler
@@ -60,6 +62,9 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         serviceManager.getIslandManager().removeDisplay(player);
         scoreboardManager.removeScoreboard(player);
+        lastTeleportTimes.remove(player.getUniqueId());
+
+        event.quitMessage(MessageUtils.parse("<red>" + player.getName() + " <gray>hat das Spiel verlassen!"));
     }
 
     @EventHandler
