@@ -135,7 +135,11 @@ public class ItemSpawner {
             ItemType.CHAIN_COMMAND_BLOCK,
             ItemType.REPEATING_COMMAND_BLOCK,
             ItemType.JIGSAW,
-            ItemType.COMMAND_BLOCK_MINECART
+            ItemType.COMMAND_BLOCK_MINECART,
+            ItemType.ENDER_DRAGON_SPAWN_EGG,
+            ItemType.DRAGON_EGG,
+            ItemType.WITHER_SPAWN_EGG,
+            ItemType.WITHER_SKELETON_SKULL
     );
 
     private ItemType getRandomMaterial() {

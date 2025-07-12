@@ -16,6 +16,8 @@ public class ServerListener implements Listener {
             world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
             world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
             world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+            world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+
             world.setGameRule(GameRule.KEEP_INVENTORY, true);
         });
     }
