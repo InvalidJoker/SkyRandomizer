@@ -1,9 +1,11 @@
 package de.joker.randomizer.commands;
 
-import de.cytooxien.realms.api.RealmInformationProvider;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
 import dev.jorel.commandapi.CommandTree;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 public class BackCommand {
@@ -17,25 +19,10 @@ public class BackCommand {
         return new CommandTree("back")
                 .withRequirement(sender -> {
                     if (!(sender instanceof Player player)) {
-                        MessageUtils.send(sender, "<red>Dieser Befehl kann nur von Spielern ausgeführt werden!");
                         return false;
                     }
-                    RealmInformationProvider informationProvider = serviceManager.getInformationProvider();
-                    boolean booster = false;
-                    if (informationProvider != null) {
-                        var boostsHolder = informationProvider.boostsByPlayer(player.getUniqueId());
-                        Integer boosts = null;
 
-                        if (boostsHolder != null) {
-                            boosts = boostsHolder.value();
-                        }
-
-                        int boostsValue = (boosts != null) ? boosts : 0;
-
-                        booster = boostsValue > 0;
-                    }
-
-                    return booster;
+                    return serviceManager.isBooster(player.getUniqueId());
                 })
                 .executesPlayer((player, args) -> {
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
@@ -43,9 +30,9 @@ public class BackCommand {
                         return;
                     }
 
-                    var location = serviceManager.getIslandManager().getOrCreateIsland(player);
+                    Location location = serviceManager.getIslandManager().getOrCreateIsland(player);
 
-                    var world = location.getWorld();
+                    World world = location.getWorld();
                     int startX = location.getBlockX();
                     int startZ = location.getBlockZ();
 
@@ -54,7 +41,7 @@ public class BackCommand {
 
                     for (int z = startZ; z >= startZ - 20; z--) {
                         for (int y = 140; y >= 40; y--) {
-                            var block = world.getBlockAt(startX, y, z);
+                            Block block = world.getBlockAt(startX, y, z);
                             if (!block.isEmpty() && !block.getType().isAir() && block.getType().isCollidable()) {
                                 if (z > highestZWithBlock) {
                                     highestZWithBlock = z;
@@ -70,7 +57,7 @@ public class BackCommand {
                         return;
                     }
 
-                    var teleportLocation = new org.bukkit.Location(
+                    Location teleportLocation = new Location(
                             world,
                             startX + 0.5,
                             highestYAtZ + 1,

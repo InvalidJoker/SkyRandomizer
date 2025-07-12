@@ -8,6 +8,8 @@ import de.joker.randomizer.data.Ranking;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 
+import java.util.UUID;
+
 
 @Getter
 public class ServiceManager {
@@ -37,5 +39,23 @@ public class ServiceManager {
             informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
         }
         return informationProvider;
+    }
+
+    public boolean isBooster(UUID uuid) {
+        RealmInformationProvider informationProvider = getInformationProvider();
+        boolean booster = false;
+        if (informationProvider != null) {
+            var boostsHolder = informationProvider.boostsByPlayer(uuid);
+            Integer boosts = null;
+
+            if (boostsHolder != null) {
+                boosts = boostsHolder.value();
+            }
+
+            int boostsValue = (boosts != null) ? boosts : 0;
+
+            booster = boostsValue > 0;
+        }
+        return booster;
     }
 }

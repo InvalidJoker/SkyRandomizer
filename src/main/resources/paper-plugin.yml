@@ -13,5 +13,5 @@ dependencies:
       load: BEFORE
 
     Realms-API:
-      required: true
+      required: false
       load: BEFORE

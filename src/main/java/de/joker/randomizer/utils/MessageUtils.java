@@ -19,7 +19,7 @@ public class MessageUtils {
     private static final long COOLDOWN_MS = 1000;
 
     public static Component parseWithPrefix(String message) {
-        return parse(prefix + " " + message);
+        return parse(prefix + message);
     }
 
     public static Component parse(String message) {

@@ -1,6 +1,7 @@
 package de.joker.randomizer;
 
 import de.joker.randomizer.commands.BackCommand;
+import de.joker.randomizer.commands.SpawnCommand;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
@@ -17,6 +18,7 @@ import net.megavex.scoreboardlibrary.api.exception.NoPacketAdapterAvailableExcep
 import org.bukkit.Bukkit;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
 import java.sql.SQLException;
@@ -27,7 +29,7 @@ public class SkyRandomizer extends JavaPlugin {
     private ScoreboardLibrary scoreboardLibrary;
 
     @Override
-    public @Nullable ChunkGenerator getDefaultWorldGenerator(String worldName, @Nullable String id) {
+    public @Nullable ChunkGenerator getDefaultWorldGenerator(@NotNull String worldName, @Nullable String id) {
         getLogger().info("Using VoidGenerator for world: " + worldName);
         return new VoidGenerator();
     }
@@ -65,6 +67,7 @@ public class SkyRandomizer extends JavaPlugin {
         serviceManager = new ServiceManager(database, this);
 
         new BackCommand(serviceManager).build().register();
+        new SpawnCommand(serviceManager).build().register();
 
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
         ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
