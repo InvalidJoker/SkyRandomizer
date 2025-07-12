@@ -48,16 +48,22 @@ public class ItemSpawner {
                     if (informationProvider == null) {
                         informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
                     }
-                    int maxTime = 15;
+                    int maxTime = 20;
                     if (informationProvider != null) {
-                        int boosts = informationProvider.boostsByPlayer(player.getUniqueId()).value();
-                        maxTime = switch (boosts) {
-                            case 0 -> 15;
-                            case 1 -> 12;
-                            default -> 10;
+                        var boostsHolder = informationProvider.boostsByPlayer(player.getUniqueId());
+                        Integer boosts = null;
+
+                        if (boostsHolder != null) {
+                            boosts = boostsHolder.value();
+                        }
+
+                        int boostsValue = (boosts != null) ? boosts : 0;
+
+                        maxTime = switch (boostsValue) {
+                            case 0 -> 20;
+                            case 1 -> 17;
+                            default -> 15;
                         };
-                    } else {
-                        log.warn("RealmInformationProvider not found, using default maxTime.");
                     }
 
                     playerTimers.putIfAbsent(player, maxTime);
