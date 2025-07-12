@@ -3,6 +3,7 @@ package de.joker.randomizer.listener;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -62,6 +63,9 @@ public class ExtraProtectionListener implements Listener {
 
     @EventHandler
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+            return;
+        }
         Player player = event.getPlayer();
         Location blockLoc = event.getBlockClicked().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
@@ -77,6 +81,9 @@ public class ExtraProtectionListener implements Listener {
 
     @EventHandler
     public void onBucketFill(PlayerBucketFillEvent event) {
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+            return;
+        }
         Player player = event.getPlayer();
         Location blockLoc = event.getBlockClicked().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
@@ -109,6 +116,9 @@ public class ExtraProtectionListener implements Listener {
 
     @EventHandler
     public void onItemDrop(PlayerDropItemEvent event) {
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+            return;
+        }
         Player player = event.getPlayer();
         Location dropLoc = event.getItemDrop().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);

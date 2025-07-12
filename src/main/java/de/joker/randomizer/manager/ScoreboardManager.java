@@ -97,7 +97,9 @@ public class ScoreboardManager {
         if (topPlayers.stream().noneMatch(pd -> pd.getUuid().equals(player.getUniqueId()))) {
             sidebar.line(4 + topPlayers.size(),
                     MessageUtils.parse(
-                            "<white>" + (topPlayers.size() + 1) + ". <green>" + player.getName() + " <gray>(" + rank.getDistance() + " Blöcke)"
+                            "<white>" + (
+                                    rank.getRank() + 1
+                            ) + ". <green>" + player.getName() + " <gray>(" + rank.getDistance() + " Blöcke)"
                     )
             );
         }

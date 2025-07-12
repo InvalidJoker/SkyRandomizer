@@ -35,6 +35,8 @@ dependencies {
 
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
     compileOnly("com.github.cytooxien:realms-api:3.0-20240519193357")
+
+    implementation("dev.jorel:commandapi-bukkit-shade-mojang-mapped:10.1.1")
 }
 
 

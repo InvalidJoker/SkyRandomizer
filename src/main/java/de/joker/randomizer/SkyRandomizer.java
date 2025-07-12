@@ -1,5 +1,6 @@
 package de.joker.randomizer;
 
+import de.joker.randomizer.commands.BackCommand;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
@@ -8,6 +9,8 @@ import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.VoidGenerator;
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import lombok.Getter;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
 import net.megavex.scoreboardlibrary.api.exception.NoPacketAdapterAvailableException;
@@ -30,10 +33,17 @@ public class SkyRandomizer extends JavaPlugin {
     }
 
     @Override
+    public void onLoad() {
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
+    }
+
+    @Override
     public void onEnable() {
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }
+
+        CommandAPI.onEnable();
 
         try {
             scoreboardLibrary = ScoreboardLibrary.loadScoreboardLibrary(this);
@@ -54,6 +64,8 @@ public class SkyRandomizer extends JavaPlugin {
 
         serviceManager = new ServiceManager(database, this);
 
+        new BackCommand(serviceManager).build().register();
+
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
         ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
 
@@ -66,6 +78,8 @@ public class SkyRandomizer extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        CommandAPI.onDisable();
+
         serviceManager.shutdown();
     }
 }
