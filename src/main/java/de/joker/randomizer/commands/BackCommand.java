@@ -8,8 +8,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class BackCommand {
     private final ServiceManager serviceManager;
+    private final Map<UUID, Instant> cooldownMap = new HashMap<>();
 
     public BackCommand(ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
@@ -27,6 +33,13 @@ public class BackCommand {
                 .executesPlayer((player, args) -> {
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
                         MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurückkehren kannst!");
+                        return;
+                    }
+
+                    Instant lastTeleport = cooldownMap.get(player.getUniqueId());
+                    Instant now = Instant.now();
+                    if (lastTeleport != null && now.isBefore(lastTeleport.plusSeconds(30))) {
+                        MessageUtils.send(player, "<red>Du kannst erst in 30 Sekunden wieder zurück teleportieren!");
                         return;
                     }
 
@@ -67,6 +80,9 @@ public class BackCommand {
                     );
 
                     player.teleport(teleportLocation);
+                    player.setFallDistance(0f);
+                    cooldownMap.put(player.getUniqueId(), now);
+                    player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
                     MessageUtils.send(player, "<green>Du wurdest zurück zu deiner Insel teleportiert!");
                 });
     }

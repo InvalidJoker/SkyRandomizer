@@ -4,9 +4,7 @@ import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
 import dev.jorel.commandapi.CommandTree;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -37,7 +35,7 @@ public class SpawnCommand {
                     player.setFallDistance(0f);
                     player.setVelocity(new Vector(0, 0, 0));
                     player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
-                    
+
                     MessageUtils.send(player, "<green>Du wurdest zurück zu deiner Insel teleportiert!");
                 });
     }
