@@ -180,6 +180,7 @@ public class PlayerListener implements Listener {
             if (currentDistance >= 4 && prevMax < 4) {
                 serviceManager.getIslandManager().removeDisplay(player);
             }
+            serviceManager.getPlayerCache().updatePlayerCoins(player.getUniqueId(), player.getName(), playerData.getCoins() + 1);
             serviceManager.getRanking().updatePlayer(player.getUniqueId(), player.getName(), currentDistance);
 
             for (int y = 59; y <= 69; y++) {

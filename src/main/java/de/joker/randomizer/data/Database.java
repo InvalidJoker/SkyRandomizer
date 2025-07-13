@@ -27,6 +27,9 @@ public class Database {
                     max_distance INTEGER DEFAULT 0
                 );
             """);
+            stmt.executeUpdate("""
+                ALTER TABLE players ADD COLUMN coins INTEGER DEFAULT 0
+            """);
         }
     }
 
