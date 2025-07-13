@@ -5,6 +5,8 @@ import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -12,6 +14,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
+
+import java.util.Arrays;
 
 @Slf4j
 public class ExtraProtectionListener implements Listener {
@@ -84,6 +88,23 @@ public class ExtraProtectionListener implements Listener {
         if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
             return;
         }
+
+        Location loc = event.getBlockClicked().getLocation().clone().add(0, 0, 1);
+        Block checkBlock = loc.getBlock();
+
+        Material[] allowedMaterials = {
+                Material.BEDROCK, Material.BARRIER, Material.AIR, Material.LAVA, Material.WATER
+        };
+
+        if (
+                !Arrays.asList(allowedMaterials).contains(checkBlock.getType()) &&
+                        event.getBlockClicked().getType() == Material.POWDER_SNOW
+        ) {
+            event.setCancelled(true);
+            MessageUtils.send(event.getPlayer(), "<red>Du kannst keine Blöcke abbauen, die mit deiner Insel verbunden sind!");
+            return;
+        }
+
         Player player = event.getPlayer();
         Location blockLoc = event.getBlockClicked().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
