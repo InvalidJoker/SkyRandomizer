@@ -8,9 +8,12 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
+import de.cytooxien.realms.api.RealmPermissionProvider;
+import de.cytooxien.realms.api.model.Group;
 import de.joker.randomizer.cache.PlayerCache;
 import de.joker.randomizer.data.PlayerData;
 import de.joker.randomizer.utils.MessageUtils;
+import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,6 +24,7 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class IslandManager {
 
     private final PlayerCache playerCache;
@@ -128,6 +132,48 @@ public class IslandManager {
                     new WrapperPlayServerDestroyEntities(entityId);
 
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
+        }
+    }
+
+    public void modifyPlayerGroup(Player player, RealmPermissionProvider permissionProvider, int distance) {
+        List<Group> groups = permissionProvider.groups();
+        var realmGroups = permissionProvider.groupsOfPlayer(player.getUniqueId());
+        List<UUID> groupsOfPlayer = List.of();
+
+        if (realmGroups != null) {
+            var val = realmGroups.value();
+            if (val != null) {
+                groupsOfPlayer = val.stream()
+                        .map(Group::uniqueId)
+                        .toList();
+            }
+        }
+
+        if (distance >= 100) {
+            Group newGroup = groups.stream().filter(group -> group.name().equals("build100")).findFirst().orElse(null);
+
+            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
+                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
+                MessageUtils.send(player, "<green>Du hast die 100 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
+            }
+        }
+
+        if (distance >= 1000) {
+            Group newGroup = groups.stream().filter(group -> group.name().equals("build1000")).findFirst().orElse(null);
+
+            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
+                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
+                MessageUtils.send(player, "<green>Du hast die 1000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
+            }
+        }
+
+        if (distance >= 10000) {
+            Group newGroup = groups.stream().filter(group -> group.name().equals("build10000")).findFirst().orElse(null);
+
+            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
+                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
+                MessageUtils.send(player, "<green>Du hast die 10000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
+            }
         }
     }
 }

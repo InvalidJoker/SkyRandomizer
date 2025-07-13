@@ -1,8 +1,6 @@
 package de.joker.randomizer.listener;
 
-import de.cytooxien.realms.api.RealmInformationProvider;
 import de.cytooxien.realms.api.RealmPermissionProvider;
-import de.cytooxien.realms.api.model.Group;
 import de.joker.randomizer.data.PlayerData;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
@@ -170,50 +168,9 @@ public class PlayerListener implements Listener {
 
     private void updateDisplay(Player player, int distance) {
         RealmPermissionProvider permissionProvider = serviceManager.getPermissionProvider();
-        RealmInformationProvider realmInformationProvider = serviceManager.getInformationProvider();
         if (permissionProvider == null) return;
-        if (realmInformationProvider == null) return;
 
-        List<Group> groups = permissionProvider.groups();
-        var realmGroups = permissionProvider.groupsOfPlayer(player.getUniqueId());
-        List<UUID> groupsOfPlayer = List.of();
-
-        if (realmGroups != null) {
-            var val = realmGroups.value();
-            if (val != null) {
-                groupsOfPlayer = val.stream()
-                        .map(Group::uniqueId)
-                        .toList();
-            }
-        }
-
-        // player gets a new group once he hits 100, 500, 1000, 2000, 10000
-        if (distance >= 100) {
-            Group newGroup = groups.stream().filter(group -> group.name().equals("build100")).findFirst().orElse(null);
-
-            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
-                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
-                MessageUtils.send(player, "<green>Du hast die 100 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
-            }
-        }
-
-        if (distance >= 1000) {
-            Group newGroup = groups.stream().filter(group -> group.name().equals("build1000")).findFirst().orElse(null);
-
-            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
-                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
-                MessageUtils.send(player, "<green>Du hast die 1000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
-            }
-        }
-
-        if (distance >= 10000) {
-            Group newGroup = groups.stream().filter(group -> group.name().equals("build10000")).findFirst().orElse(null);
-
-            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
-                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
-                MessageUtils.send(player, "<green>Du hast die 10000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
-            }
-        }
+        serviceManager.getIslandManager().modifyPlayerGroup(player, permissionProvider, distance);
     }
 
     private void updateDistance(Player player, int currentDistance, int islandX, int blockZ) {
