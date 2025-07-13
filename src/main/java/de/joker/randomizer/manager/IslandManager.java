@@ -63,7 +63,7 @@ public class IslandManager {
         bedrock.getBlock().setType(Material.BEDROCK);
 
         for (int i = -4; i <= 1; i++) {
-            for (int y = centerY - 5; y <= centerY + 5; y++) {
+            for (int y = centerY - 5; y <= centerY + 20; y++) {
                 Location barrierLocation = new Location(getWorld(), x + 4, y, i);
                 barrierLocation.getBlock().setType(Material.BARRIER);
             }

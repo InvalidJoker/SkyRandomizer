@@ -1,12 +1,15 @@
 package de.joker.randomizer.listener;
 
+import de.cytooxien.realms.api.RealmInformationProvider;
+import de.cytooxien.realms.api.RealmPermissionProvider;
+import de.cytooxien.realms.api.model.Group;
 import de.joker.randomizer.data.PlayerData;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
+import de.joker.randomizer.utils.SpectatorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -21,10 +24,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.util.Vector;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class PlayerListener implements Listener {
@@ -71,7 +71,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
@@ -107,7 +107,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
@@ -136,7 +136,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
@@ -168,6 +168,54 @@ public class PlayerListener implements Listener {
         MessageUtils.send(player, "<red>Du kannst keine Blöcke außerhalb deiner Insel abbauen!");
     }
 
+    private void updateDisplay(Player player, int distance) {
+        RealmPermissionProvider permissionProvider = serviceManager.getPermissionProvider();
+        RealmInformationProvider realmInformationProvider = serviceManager.getInformationProvider();
+        if (permissionProvider == null) return;
+        if (realmInformationProvider == null) return;
+
+        List<Group> groups = permissionProvider.groups();
+        var realmGroups = permissionProvider.groupsOfPlayer(player.getUniqueId());
+        List<UUID> groupsOfPlayer = List.of();
+
+        if (realmGroups != null) {
+            var val = realmGroups.value();
+            if (val != null) {
+                groupsOfPlayer = val.stream()
+                        .map(Group::uniqueId)
+                        .toList();
+            }
+        }
+
+        // player gets a new group once he hits 100, 500, 1000, 2000, 10000
+        if (distance >= 100) {
+            Group newGroup = groups.stream().filter(group -> group.name().equals("build100")).findFirst().orElse(null);
+
+            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
+                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
+                MessageUtils.send(player, "<green>Du hast die 100 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
+            }
+        }
+
+        if (distance >= 1000) {
+            Group newGroup = groups.stream().filter(group -> group.name().equals("build1000")).findFirst().orElse(null);
+
+            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
+                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
+                MessageUtils.send(player, "<green>Du hast die 1000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
+            }
+        }
+
+        if (distance >= 10000) {
+            Group newGroup = groups.stream().filter(group -> group.name().equals("build10000")).findFirst().orElse(null);
+
+            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
+                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
+                MessageUtils.send(player, "<green>Du hast die 10000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
+            }
+        }
+    }
+
     private void updateDistance(Player player, int currentDistance, int islandX, int blockZ) {
         PlayerData playerData = serviceManager.getPlayerCache().getPlayer(player.getUniqueId());
         if (playerData == null) {
@@ -180,9 +228,10 @@ public class PlayerListener implements Listener {
             if (currentDistance >= 4 && prevMax < 4) {
                 serviceManager.getIslandManager().removeDisplay(player);
             }
+            updateDisplay(player, currentDistance);
             serviceManager.getRanking().updatePlayer(player.getUniqueId(), player.getName(), currentDistance);
 
-            for (int y = 59; y <= 69; y++) {
+            for (int y = 59; y <= 80; y++) {
                 Location barrierLocation = new Location(player.getWorld(), islandX + 4, y, blockZ);
                 barrierLocation.getBlock().setType(Material.BARRIER);
             }
