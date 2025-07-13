@@ -36,7 +36,7 @@ public class SkyRandomizer extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(this));
     }
 
     @Override
@@ -66,9 +66,6 @@ public class SkyRandomizer extends JavaPlugin {
 
         serviceManager = new ServiceManager(database, this);
 
-        new BackCommand(serviceManager).build().register();
-        new SpawnCommand(serviceManager).build().register();
-
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
         ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
 
@@ -77,6 +74,9 @@ public class SkyRandomizer extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ServerListener(), this);
 
         itemSpawner.start();
+
+        new BackCommand(serviceManager).build().register();
+        new SpawnCommand(serviceManager).build().register();
     }
 
     @Override

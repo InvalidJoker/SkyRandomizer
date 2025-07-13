@@ -7,6 +7,7 @@ import de.joker.randomizer.data.Database;
 import de.joker.randomizer.data.Ranking;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
@@ -35,13 +36,25 @@ public class ServiceManager {
     }
 
     public RealmInformationProvider getInformationProvider() {
-        if (informationProvider == null) {
-            informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
+        if (!Bukkit.getPluginManager().isPluginEnabled("Realms-API")) {
+            return null;
+        }
+        try {
+            if (informationProvider == null) {
+                informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
+            }
+        } catch (Exception e) {
+            informationProvider = null;
         }
         return informationProvider;
     }
 
-    public boolean isBooster(UUID uuid) {
+    public boolean isBooster(Player player) {
+        UUID uuid = player.getUniqueId();
+
+        if (player.hasPermission("realms.booster")) {
+            return true;
+        }
         RealmInformationProvider informationProvider = getInformationProvider();
         boolean booster = false;
         if (informationProvider != null) {

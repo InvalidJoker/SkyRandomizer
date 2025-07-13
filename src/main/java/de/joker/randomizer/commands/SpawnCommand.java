@@ -16,13 +16,13 @@ public class SpawnCommand {
     }
 
     public CommandTree build() {
-        return new CommandTree("back")
+        return new CommandTree("spawn")
                 .withRequirement(sender -> {
                     if (!(sender instanceof Player player)) {
                         return false;
                     }
 
-                    return serviceManager.isBooster(player.getUniqueId());
+                    return serviceManager.isBooster(player);
                 })
                 .executesPlayer((player, args) -> {
                     if (!serviceManager.getIslandManager().hasIsland(player)) {

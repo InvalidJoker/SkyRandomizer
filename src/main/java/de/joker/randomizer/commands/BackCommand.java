@@ -28,7 +28,7 @@ public class BackCommand {
                         return false;
                     }
 
-                    return serviceManager.isBooster(player.getUniqueId());
+                    return serviceManager.isBooster(player);
                 })
                 .executesPlayer((player, args) -> {
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
@@ -38,7 +38,7 @@ public class BackCommand {
 
                     Instant lastTeleport = cooldownMap.get(player.getUniqueId());
                     Instant now = Instant.now();
-                    if (lastTeleport != null && now.isBefore(lastTeleport.plusSeconds(30))) {
+                    if (lastTeleport != null && now.isBefore(lastTeleport.plusSeconds(30)) && !player.hasPermission("realms.bypass")) {
                         MessageUtils.send(player, "<red>Du kannst erst in 30 Sekunden wieder zurück teleportieren!");
                         return;
                     }
@@ -48,24 +48,40 @@ public class BackCommand {
                     World world = location.getWorld();
                     int startX = location.getBlockX();
                     int startZ = location.getBlockZ();
+                    int lastGoodZ = Integer.MIN_VALUE;
+                    int lastGoodY = -1;
 
-                    int highestZWithBlock = Integer.MIN_VALUE;
-                    int highestYAtZ = -1;
+                    int z = startZ;
 
-                    for (int z = startZ; z >= startZ - 20; z--) {
+                    while (true) {
+                        boolean hasBlock = false;
+                        int highestYAtZ = -1;
+
                         for (int y = 140; y >= 40; y--) {
                             Block block = world.getBlockAt(startX, y, z);
-                            if (!block.isEmpty() && !block.getType().isAir() && block.getType().isCollidable()) {
-                                if (z > highestZWithBlock) {
-                                    highestZWithBlock = z;
+
+                            if (!block.isEmpty()
+                                    && !block.getType().isAir()
+                                    && block.getType().isCollidable()
+                                    && !block.getType().name().contains("LAVA")
+                                    && !block.getType().name().contains("WATER")) {
+                                hasBlock = true;
+                                if (y > highestYAtZ) {
                                     highestYAtZ = y;
                                 }
-                                break;
                             }
+                        }
+
+                        if (hasBlock) {
+                            lastGoodZ = z;
+                            lastGoodY = highestYAtZ;
+                            z++;
+                        } else {
+                            break;
                         }
                     }
 
-                    if (highestZWithBlock == Integer.MIN_VALUE) {
+                    if (lastGoodZ == Integer.MIN_VALUE) {
                         MessageUtils.send(player, "<red>Es wurde kein solider Block gefunden, zu dem du teleportiert werden kannst!");
                         return;
                     }
@@ -73,8 +89,8 @@ public class BackCommand {
                     Location teleportLocation = new Location(
                             world,
                             startX + 0.5,
-                            highestYAtZ + 1,
-                            highestZWithBlock + 0.5,
+                            lastGoodY + 1,
+                            lastGoodZ + 0.5,
                             player.getLocation().getYaw(),
                             player.getLocation().getPitch()
                     );
