@@ -159,7 +159,7 @@ public class ItemSpawner {
     private ItemType getRandomMaterial() {
         var reg = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM);
         var items = reg.stream()
-                .filter(item -> !BLACKLIST.contains(item) && item != ItemTypes.AIR);
+                .filter(item -> !BLACKLIST.contains(item));
         return items.skip(random.nextInt(reg.size())).findFirst().orElse(ItemType.STONE);
     }
 }

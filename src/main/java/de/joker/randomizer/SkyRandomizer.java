@@ -1,11 +1,13 @@
 package de.joker.randomizer;
 
 import de.joker.randomizer.commands.BackCommand;
+import de.joker.randomizer.commands.EcCommand;
 import de.joker.randomizer.commands.SpawnCommand;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
 import de.joker.randomizer.listener.ServerListener;
+import de.joker.randomizer.manager.BroadcastManager;
 import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
@@ -68,15 +70,18 @@ public class SkyRandomizer extends JavaPlugin {
 
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
         ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
+        BroadcastManager broadcastManager = new BroadcastManager(this);
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager), this);
         Bukkit.getPluginManager().registerEvents(new ExtraProtectionListener(serviceManager), this);
         Bukkit.getPluginManager().registerEvents(new ServerListener(), this);
 
         itemSpawner.start();
+        broadcastManager.start();
 
         new BackCommand(serviceManager).build().register();
         new SpawnCommand(serviceManager).build().register();
+        new EcCommand(serviceManager).build().register();
     }
 
     @Override

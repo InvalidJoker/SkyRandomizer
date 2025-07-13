@@ -30,6 +30,7 @@ public class BackCommand {
 
                     return serviceManager.isBooster(player);
                 })
+                .withAliases("front", "return", "zurück")
                 .executesPlayer((player, args) -> {
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
                         MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurückkehren kannst!");
@@ -50,31 +51,40 @@ public class BackCommand {
                     int startZ = location.getBlockZ();
                     int lastGoodZ = Integer.MIN_VALUE;
                     int lastGoodY = -1;
+                    int lastGoodX = Integer.MIN_VALUE;
 
                     int z = startZ;
+                    int attempts = 0;
+                    int maxAttempts = 100000;
 
-                    while (true) {
-                        boolean hasBlock = false;
-                        int highestYAtZ = -1;
+                    while (attempts < maxAttempts) {
+                        attempts++;
+                        boolean foundSolidBlockInRow = false;
+                        int highestYInRow = -1;
+                        int bestXInRow = startX;
 
-                        for (int y = 140; y >= 40; y--) {
-                            Block block = world.getBlockAt(startX, y, z);
+                        for (int x = startX - 3; x <= startX + 3; x++) {
+                            for (int y = 140; y >= 40; y--) {
+                                Block block = world.getBlockAt(x, y, z);
 
-                            if (!block.isEmpty()
-                                    && !block.getType().isAir()
-                                    && block.getType().isCollidable()
-                                    && !block.getType().name().contains("LAVA")
-                                    && !block.getType().name().contains("WATER")) {
-                                hasBlock = true;
-                                if (y > highestYAtZ) {
-                                    highestYAtZ = y;
+                                if (!block.isEmpty()
+                                        && !block.getType().isAir()
+                                        && block.getType().isCollidable()
+                                        && !block.getType().name().contains("LAVA")
+                                        && !block.getType().name().contains("WATER")) {
+                                    foundSolidBlockInRow = true;
+                                    if (y > highestYInRow) {
+                                        highestYInRow = y;
+                                        bestXInRow = x;
+                                    }
                                 }
                             }
                         }
 
-                        if (hasBlock) {
+                        if (foundSolidBlockInRow) {
                             lastGoodZ = z;
-                            lastGoodY = highestYAtZ;
+                            lastGoodY = highestYInRow;
+                            lastGoodX = bestXInRow;
                             z++;
                         } else {
                             break;
@@ -88,7 +98,7 @@ public class BackCommand {
 
                     Location teleportLocation = new Location(
                             world,
-                            startX + 0.5,
+                            lastGoodX + 0.5,
                             lastGoodY + 1,
                             lastGoodZ + 0.5,
                             player.getLocation().getYaw(),
