@@ -28,7 +28,6 @@ public class ItemSpawner {
     private final SkyRandomizer plugin;
     private final IslandManager islandManager;
     private final Random random = new Random();
-    private RealmInformationProvider informationProvider;
 
     private final Map<Player, Integer> playerTimers = new HashMap<>();
     private final Map<Player, BossBar> bossBars = new HashMap<>();
@@ -37,7 +36,6 @@ public class ItemSpawner {
     public ItemSpawner(SkyRandomizer plugin, IslandManager islandManager) {
         this.plugin = plugin;
         this.islandManager = islandManager;
-        this.informationProvider = null;
     }
 
     public void start() {
@@ -45,10 +43,8 @@ public class ItemSpawner {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (informationProvider == null) {
-                        informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
-                    }
                     int maxTime = 20;
+                    RealmInformationProvider informationProvider = plugin.getServiceManager().getInformationProvider();
                     try {
                         if (informationProvider != null) {
                             var boostsHolder = informationProvider.boostsByPlayer(player.getUniqueId());
@@ -149,7 +145,15 @@ public class ItemSpawner {
             ItemType.ENDER_DRAGON_SPAWN_EGG,
             ItemType.DRAGON_EGG,
             ItemType.WITHER_SPAWN_EGG,
-            ItemType.WITHER_SKELETON_SKULL
+            ItemType.WITHER_SKELETON_SKULL,
+            ItemType.GHAST_SPAWN_EGG,
+            ItemType.ENDERMAN_SPAWN_EGG,
+            ItemType.VEX_SPAWN_EGG,
+            ItemType.VINDICATOR_SPAWN_EGG,
+            ItemType.PHANTOM_SPAWN_EGG,
+            ItemType.ELDER_GUARDIAN_SPAWN_EGG,
+            ItemType.BLAZE_SPAWN_EGG,
+            ItemType.WARDEN_SPAWN_EGG
     );
 
     private ItemType getRandomMaterial() {

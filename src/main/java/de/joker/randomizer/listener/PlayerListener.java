@@ -6,6 +6,7 @@ import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -20,6 +21,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.util.Vector;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -69,6 +71,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+            return;
+        }
         Player player = event.getPlayer();
         Location from = event.getFrom();
         Location to = event.getTo();
@@ -102,6 +107,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+            return;
+        }
         Player player = event.getPlayer();
         Location blockLoc = event.getBlockPlaced().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
@@ -128,6 +136,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
+        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+            return;
+        }
         Player player = event.getPlayer();
         Location blockLoc = event.getBlock().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
@@ -138,7 +149,11 @@ public class PlayerListener implements Listener {
         Location checkLocation = blockLoc.clone().add(0, 0, 1);
         Block checkBlock = checkLocation.getBlock();
 
-        if (checkBlock.getType() != Material.AIR && checkBlock.getType() != Material.BEDROCK) {
+        Material[] allowedMaterials = {
+            Material.BEDROCK, Material.BARRIER, Material.AIR, Material.LAVA, Material.WATER
+        };
+
+        if (!Arrays.asList(allowedMaterials).contains(checkBlock.getType())) {
             event.setCancelled(true);
             MessageUtils.send(player, "<red>Du kannst keine Blöcke abbauen, die mit deiner Insel verbunden sind!");
             return;

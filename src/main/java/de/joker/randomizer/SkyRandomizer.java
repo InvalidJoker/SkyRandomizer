@@ -1,5 +1,7 @@
 package de.joker.randomizer;
 
+import de.joker.randomizer.commands.BackCommand;
+import de.joker.randomizer.commands.SpawnCommand;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
@@ -8,12 +10,15 @@ import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.VoidGenerator;
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import lombok.Getter;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
 import net.megavex.scoreboardlibrary.api.exception.NoPacketAdapterAvailableException;
 import org.bukkit.Bukkit;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
 import java.sql.SQLException;
@@ -24,9 +29,14 @@ public class SkyRandomizer extends JavaPlugin {
     private ScoreboardLibrary scoreboardLibrary;
 
     @Override
-    public @Nullable ChunkGenerator getDefaultWorldGenerator(String worldName, @Nullable String id) {
+    public @Nullable ChunkGenerator getDefaultWorldGenerator(@NotNull String worldName, @Nullable String id) {
         getLogger().info("Using VoidGenerator for world: " + worldName);
         return new VoidGenerator();
+    }
+
+    @Override
+    public void onLoad() {
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(this));
     }
 
     @Override
@@ -34,6 +44,8 @@ public class SkyRandomizer extends JavaPlugin {
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }
+
+        CommandAPI.onEnable();
 
         try {
             scoreboardLibrary = ScoreboardLibrary.loadScoreboardLibrary(this);
@@ -62,10 +74,15 @@ public class SkyRandomizer extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ServerListener(), this);
 
         itemSpawner.start();
+
+        new BackCommand(serviceManager).build().register();
+        new SpawnCommand(serviceManager).build().register();
     }
 
     @Override
     public void onDisable() {
+        CommandAPI.onDisable();
+
         serviceManager.shutdown();
     }
 }
