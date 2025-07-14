@@ -24,15 +24,12 @@ public class BackCommand {
 
     public CommandTree build() {
         return new CommandTree("back")
-                .withRequirement(sender -> {
-                    if (!(sender instanceof Player player)) {
-                        return false;
-                    }
-
-                    return serviceManager.isBooster(player);
-                })
                 .withAliases("front", "return", "zurück")
                 .executesPlayer((player, args) -> {
+                    if (!serviceManager.isBooster(player)) {
+                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
+                        return;
+                    }
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
                         MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurückkehren kannst!");
                         return;

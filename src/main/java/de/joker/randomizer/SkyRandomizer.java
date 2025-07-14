@@ -3,6 +3,7 @@ package de.joker.randomizer;
 import de.joker.randomizer.commands.BackCommand;
 import de.joker.randomizer.commands.EcCommand;
 import de.joker.randomizer.commands.SpawnCommand;
+import de.joker.randomizer.commands.WbCommand;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
@@ -82,6 +83,7 @@ public class SkyRandomizer extends JavaPlugin {
         new BackCommand(serviceManager).build().register();
         new SpawnCommand(serviceManager).build().register();
         new EcCommand(serviceManager).build().register();
+        new WbCommand(serviceManager).build().register();
     }
 
     @Override

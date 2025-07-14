@@ -5,7 +5,6 @@ import de.joker.randomizer.utils.MessageUtils;
 import dev.jorel.commandapi.CommandTree;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class SpawnCommand {
@@ -17,14 +16,11 @@ public class SpawnCommand {
 
     public CommandTree build() {
         return new CommandTree("spawn")
-                .withRequirement(sender -> {
-                    if (!(sender instanceof Player player)) {
-                        return false;
-                    }
-
-                    return serviceManager.isBooster(player);
-                })
                 .executesPlayer((player, args) -> {
+                    if (!serviceManager.isBooster(player)) {
+                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
+                        return;
+                    }
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
                         MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurückkehren kannst!");
                         return;
