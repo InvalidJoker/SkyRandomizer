@@ -1,5 +1,6 @@
 package de.joker.randomizer.commands;
 
+import de.joker.randomizer.data.PlayerRank;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
 import dev.jorel.commandapi.CommandTree;
@@ -23,15 +24,12 @@ public class BackCommand {
 
     public CommandTree build() {
         return new CommandTree("back")
-                .withRequirement(sender -> {
-                    if (!(sender instanceof Player player)) {
-                        return false;
-                    }
-
-                    return serviceManager.isBooster(player);
-                })
                 .withAliases("front", "return", "zurück")
                 .executesPlayer((player, args) -> {
+                    if (!serviceManager.isBooster(player)) {
+                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
+                        return;
+                    }
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
                         MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurückkehren kannst!");
                         return;
@@ -49,49 +47,36 @@ public class BackCommand {
                     World world = location.getWorld();
                     int startX = location.getBlockX();
                     int startZ = location.getBlockZ();
-                    int lastGoodZ = Integer.MIN_VALUE;
-                    int lastGoodY = -1;
+                    PlayerRank rank = serviceManager.getRanking().getRankOfPlayer(player.getUniqueId());
+                    if (rank == null) {
+                        MessageUtils.send(player, "<red>Dein Rang konnte nicht ermittelt werden!");
+                        return;
+                    }
+                    int maxDistance = rank.getDistance();
+                    int targetZ = startZ + maxDistance;
+
                     int lastGoodX = Integer.MIN_VALUE;
+                    int lastGoodY = -1;
 
-                    int z = startZ;
-                    int attempts = 0;
-                    int maxAttempts = 100000;
+                    for (int x = startX - 3; x <= startX + 3; x++) {
+                        for (int y = 140; y >= 40; y--) {
+                            Block block = world.getBlockAt(x, y, targetZ);
 
-                    while (attempts < maxAttempts) {
-                        attempts++;
-                        boolean foundSolidBlockInRow = false;
-                        int highestYInRow = -1;
-                        int bestXInRow = startX;
-
-                        for (int x = startX - 3; x <= startX + 3; x++) {
-                            for (int y = 140; y >= 40; y--) {
-                                Block block = world.getBlockAt(x, y, z);
-
-                                if (!block.isEmpty()
-                                        && !block.getType().isAir()
-                                        && block.getType().isCollidable()
-                                        && !block.getType().name().contains("LAVA")
-                                        && !block.getType().name().contains("WATER")) {
-                                    foundSolidBlockInRow = true;
-                                    if (y > highestYInRow) {
-                                        highestYInRow = y;
-                                        bestXInRow = x;
-                                    }
+                            if (!block.isEmpty()
+                                    && !block.getType().isAir()
+                                    && block.getType().isCollidable()
+                                    && !block.getType().name().contains("LAVA")
+                                    && !block.getType().name().contains("WATER")) {
+                                if (y > lastGoodY) {
+                                    lastGoodY = y;
+                                    lastGoodX = x;
                                 }
+                                break;
                             }
-                        }
-
-                        if (foundSolidBlockInRow) {
-                            lastGoodZ = z;
-                            lastGoodY = highestYInRow;
-                            lastGoodX = bestXInRow;
-                            z++;
-                        } else {
-                            break;
                         }
                     }
 
-                    if (lastGoodZ == Integer.MIN_VALUE) {
+                    if (lastGoodY == -1) {
                         MessageUtils.send(player, "<red>Es wurde kein solider Block gefunden, zu dem du teleportiert werden kannst!");
                         return;
                     }
@@ -100,7 +85,7 @@ public class BackCommand {
                             world,
                             lastGoodX + 0.5,
                             lastGoodY + 1,
-                            lastGoodZ + 0.5,
+                            targetZ + 0.5,
                             player.getLocation().getYaw(),
                             player.getLocation().getPitch()
                     );
@@ -109,7 +94,7 @@ public class BackCommand {
                     player.setFallDistance(0f);
                     cooldownMap.put(player.getUniqueId(), now);
                     player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
-                    MessageUtils.send(player, "<green>Du wurdest zurück zu deiner Insel teleportiert!");
+                    MessageUtils.send(player, "<green>Du wurdest zu deinem letzten Standort auf deiner Insel teleportiert!");
                 });
     }
 }

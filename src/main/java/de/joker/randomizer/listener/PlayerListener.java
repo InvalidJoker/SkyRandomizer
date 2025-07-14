@@ -1,13 +1,14 @@
 package de.joker.randomizer.listener;
 
+import de.cytooxien.realms.api.RealmPermissionProvider;
 import de.joker.randomizer.data.PlayerData;
 import de.joker.randomizer.manager.CoinManager;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
+import de.joker.randomizer.utils.SpectatorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -22,10 +23,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.util.Vector;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class PlayerListener implements Listener {
@@ -75,7 +73,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
@@ -111,7 +109,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
@@ -140,7 +138,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
@@ -172,6 +170,13 @@ public class PlayerListener implements Listener {
         MessageUtils.send(player, "<red>Du kannst keine Blöcke außerhalb deiner Insel abbauen!");
     }
 
+    private void updateDisplay(Player player, int distance) {
+        RealmPermissionProvider permissionProvider = serviceManager.getPermissionProvider();
+        if (permissionProvider == null) return;
+
+        serviceManager.getIslandManager().modifyPlayerGroup(player, permissionProvider, distance);
+    }
+
     private void updateDistance(Player player, int currentDistance, int islandX, int blockZ) {
         PlayerData playerData = serviceManager.getPlayerCache().getPlayer(player.getUniqueId());
         if (playerData == null) {
@@ -185,9 +190,10 @@ public class PlayerListener implements Listener {
                 serviceManager.getIslandManager().removeDisplay(player);
             }
             serviceManager.getPlayerCache().updatePlayerCoins(player.getUniqueId(), player.getName(), playerData.getCoins() + 1);
+            updateDisplay(player, currentDistance);
             serviceManager.getRanking().updatePlayer(player.getUniqueId(), player.getName(), currentDistance);
 
-            for (int y = 59; y <= 69; y++) {
+            for (int y = 59; y <= 80; y++) {
                 Location barrierLocation = new Location(player.getWorld(), islandX + 4, y, blockZ);
                 barrierLocation.getBlock().setType(Material.BARRIER);
             }

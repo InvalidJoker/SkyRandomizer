@@ -1,6 +1,7 @@
 package de.joker.randomizer.manager;
 
 import de.cytooxien.realms.api.RealmInformationProvider;
+import de.cytooxien.realms.api.RealmPermissionProvider;
 import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.cache.PlayerCache;
 import de.joker.randomizer.data.Database;
@@ -21,6 +22,7 @@ public class ServiceManager {
     private final IslandManager islandManager;
     private final SkyRandomizer plugin;
     private RealmInformationProvider informationProvider;
+    private RealmPermissionProvider permissionProvider;
 
     public ServiceManager(Database database, SkyRandomizer plugin) {
         this.database = database;
@@ -36,9 +38,6 @@ public class ServiceManager {
     }
 
     public RealmInformationProvider getInformationProvider() {
-        if (!Bukkit.getPluginManager().isPluginEnabled("Realms-API")) {
-            return null;
-        }
         try {
             if (informationProvider == null) {
                 informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
@@ -47,6 +46,17 @@ public class ServiceManager {
             informationProvider = null;
         }
         return informationProvider;
+    }
+
+    public RealmPermissionProvider getPermissionProvider() {
+        try {
+            if (permissionProvider == null) {
+                permissionProvider = Bukkit.getServicesManager().load(RealmPermissionProvider.class);
+            }
+        } catch (Exception e) {
+            permissionProvider = null;
+        }
+        return permissionProvider;
     }
 
     public boolean isBooster(Player player) {
