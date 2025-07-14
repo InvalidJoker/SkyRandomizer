@@ -2,6 +2,7 @@ package de.joker.randomizer.listener;
 
 import de.cytooxien.realms.api.RealmPermissionProvider;
 import de.joker.randomizer.data.PlayerData;
+import de.joker.randomizer.manager.CoinManager;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
@@ -29,11 +30,13 @@ public class PlayerListener implements Listener {
 
     private final ServiceManager serviceManager;
     private final ScoreboardManager scoreboardManager;
+    private final CoinManager coinManager;
     private final Map<UUID, Instant> lastTeleportTimes = new HashMap<>();
 
-    public PlayerListener(ServiceManager serviceManager, ScoreboardManager scoreboardManager) {
+    public PlayerListener(ServiceManager serviceManager, ScoreboardManager scoreboardManager, CoinManager coinManager) {
         this.serviceManager = serviceManager;
         this.scoreboardManager = scoreboardManager;
+        this.coinManager = coinManager;
     }
 
     @EventHandler
@@ -41,6 +44,7 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
         serviceManager.getRanking().addPlayerIfNotExists(player.getUniqueId(), player.getName());
+        coinManager.addToGiveaway(player);
 
         Bukkit.getScheduler().runTaskLater(serviceManager.getPlugin(), () -> {
             player.teleport(islandCenter.clone().add(0.5, 1, 0.5).setDirection(islandCenter.getDirection().setY(0)));
@@ -185,6 +189,7 @@ public class PlayerListener implements Listener {
             if (currentDistance >= 4 && prevMax < 4) {
                 serviceManager.getIslandManager().removeDisplay(player);
             }
+            serviceManager.getPlayerCache().updatePlayerCoins(player.getUniqueId(), player.getName(), playerData.getCoins() + 1);
             updateDisplay(player, currentDistance);
             serviceManager.getRanking().updatePlayer(player.getUniqueId(), player.getName(), currentDistance);
 
