@@ -38,9 +38,6 @@ public class ServiceManager {
     }
 
     public RealmInformationProvider getInformationProvider() {
-        if (Bukkit.getPort() == 25565) {
-            return null;
-        }
         try {
             if (informationProvider == null) {
                 informationProvider = Bukkit.getServicesManager().load(RealmInformationProvider.class);
@@ -52,9 +49,6 @@ public class ServiceManager {
     }
 
     public RealmPermissionProvider getPermissionProvider() {
-        if (Bukkit.getPort() == 25565) {
-            return null;
-        }
         try {
             if (permissionProvider == null) {
                 permissionProvider = Bukkit.getServicesManager().load(RealmPermissionProvider.class);
