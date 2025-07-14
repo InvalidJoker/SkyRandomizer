@@ -153,7 +153,8 @@ public class ItemSpawner {
             ItemType.PHANTOM_SPAWN_EGG,
             ItemType.ELDER_GUARDIAN_SPAWN_EGG,
             ItemType.BLAZE_SPAWN_EGG,
-            ItemType.WARDEN_SPAWN_EGG
+            ItemType.WARDEN_SPAWN_EGG,
+            ItemType.LIGHT
     );
 
     private ItemType getRandomMaterial() {

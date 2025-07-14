@@ -2,6 +2,7 @@ package de.joker.randomizer.listener;
 
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
+import de.joker.randomizer.utils.SpectatorUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -67,7 +68,7 @@ public class ExtraProtectionListener implements Listener {
 
     @EventHandler
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
@@ -85,7 +86,7 @@ public class ExtraProtectionListener implements Listener {
 
     @EventHandler
     public void onBucketFill(PlayerBucketFillEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
 
@@ -121,6 +122,9 @@ public class ExtraProtectionListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
+            if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
+                return;
+            }
             Player player = event.getPlayer();
             Location blockLoc = event.getClickedBlock().getLocation();
             Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
@@ -137,7 +141,7 @@ public class ExtraProtectionListener implements Listener {
 
     @EventHandler
     public void onItemDrop(PlayerDropItemEvent event) {
-        if (event.getPlayer().getGameMode().equals(GameMode.CREATIVE)) {
+        if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
         Player player = event.getPlayer();
