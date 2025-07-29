@@ -1,4 +1,8 @@
 # SkyRandomizer
+
+> [!IMPORTANT]
+> This project was made for a [Cytooxien](https://cytooxien.net) trial and isn't really maintained anymore.
+
 > A Minecraft plugin inspired by the BastiGHG Challenge "30 SEKUNDEN = NEUES ITEM"
 > Watch the original challenge on [YouTube](https://www.youtube.com/watch?v=X1rXPrWWMGw).
 ## Installation
