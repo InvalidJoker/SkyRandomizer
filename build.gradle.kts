@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.papermc.paperweight.userdev.ReobfArtifactConfiguration
 import org.gradle.api.JavaVersion.VERSION_21
 import xyz.jpenilla.runpaper.task.RunServer
 
@@ -20,8 +21,10 @@ repositories {
     maven { url = uri("https://jitpack.io") }
 }
 
+paperweight.reobfArtifactConfiguration = ReobfArtifactConfiguration.MOJANG_PRODUCTION
+
 dependencies {
-    paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.6-R0.1-SNAPSHOT")
 
     implementation("org.jetbrains:annotations:26.0.1")
     implementation("org.xerial:sqlite-jdbc:3.50.2.0")
@@ -29,14 +32,14 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.36")
     implementation("org.projectlombok:lombok:1.18.36")
 
-    implementation("net.megavex:scoreboard-library-api:2.3.3")
-    runtimeOnly("net.megavex:scoreboard-library-implementation:2.3.3")
-    runtimeOnly("net.megavex:scoreboard-library-modern:2.3.3:mojmap")
+    implementation("net.megavex:scoreboard-library-api:2.4.1")
+    runtimeOnly("net.megavex:scoreboard-library-implementation:2.4.1")
+    runtimeOnly("net.megavex:scoreboard-library-modern:2.4.1:mojmap")
 
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
     compileOnly("com.github.cytooxien:realms-api:3.0-20240519193357")
 
-    implementation("dev.jorel:commandapi-bukkit-shade-mojang-mapped:10.1.1")
+    implementation("dev.jorel:commandapi-bukkit-shade-mojang-mapped:10.1.2")
 }
 
 
@@ -74,7 +77,7 @@ tasks {
     }
 
     named<RunServer>("runServer") {
-        minecraftVersion("1.21.5")
+        minecraftVersion("1.21.6")
     }
 
     build {
