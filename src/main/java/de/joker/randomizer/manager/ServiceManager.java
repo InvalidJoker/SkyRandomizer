@@ -68,14 +68,9 @@ public class ServiceManager {
         RealmInformationProvider informationProvider = getInformationProvider();
         boolean booster = false;
         if (informationProvider != null) {
-            var boostsHolder = informationProvider.boostsByPlayer(uuid);
-            Integer boosts = null;
+            var boosts = informationProvider.boosts().value().stream().filter(b -> b.playerId().equals(uuid)).findFirst().orElse(null);
 
-            if (boostsHolder != null) {
-                boosts = boostsHolder.value();
-            }
-
-            int boostsValue = (boosts != null) ? boosts : 0;
+            int boostsValue = (boosts != null) ? boosts.amount() : 0;
 
             booster = boostsValue > 0;
         }

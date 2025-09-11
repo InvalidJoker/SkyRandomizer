@@ -47,14 +47,9 @@ public class ItemSpawner {
                     RealmInformationProvider informationProvider = plugin.getServiceManager().getInformationProvider();
                     try {
                         if (informationProvider != null) {
-                            var boostsHolder = informationProvider.boostsByPlayer(player.getUniqueId());
-                            Integer boosts = null;
+                            var boosts = informationProvider.boosts().value().stream().filter(b -> b.playerId().equals(player.getUniqueId())).findFirst().orElse(null);
 
-                            if (boostsHolder != null) {
-                                boosts = boostsHolder.value();
-                            }
-
-                            int boostsValue = (boosts != null) ? boosts : 0;
+                            int boostsValue = (boosts != null) ? boosts.amount() : 0;
 
                             maxTime = switch (boostsValue) {
                                 case 0 -> 20;

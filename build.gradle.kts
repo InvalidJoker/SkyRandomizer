@@ -37,7 +37,7 @@ dependencies {
     runtimeOnly("net.megavex:scoreboard-library-modern:2.4.1:mojmap")
 
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
-    compileOnly("com.github.cytooxien:realms-api:3.0-20240519193357")
+    compileOnly("com.github.cytooxien:realms-api:4.0.1")
 
     implementation("dev.jorel:commandapi-bukkit-shade-mojang-mapped:10.1.2")
 }
@@ -61,7 +61,9 @@ tasks {
     named<ShadowJar>("shadowJar") {
         archiveFileName.set("${project.name}.jar")
         minimize {
-            exclude(dependency("net.megavex:.*:.*"))
+            exclude(dependency("net.megavex:scoreboard-library-.*:.*"))
+            exclude(dependency("dev.jorel:commandapi-.*:.*"))
+            exclude(dependency("org.xerial:sqlite-jdbc:.*"))
         }
 
         relocate("net.megavex.scoreboardlibrary", "de.joker.randomizer.scoreboardlibrary")
