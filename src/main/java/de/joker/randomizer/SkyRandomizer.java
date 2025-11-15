@@ -16,6 +16,7 @@ import de.joker.randomizer.utils.VoidGenerator;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
 import net.megavex.scoreboardlibrary.api.exception.NoPacketAdapterAvailableException;
 import org.bukkit.Bukkit;
@@ -26,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.sql.SQLException;
 
+@Slf4j
 @Getter
 public class SkyRandomizer extends JavaPlugin {
     private ServiceManager serviceManager;
@@ -53,7 +55,7 @@ public class SkyRandomizer extends JavaPlugin {
         try {
             scoreboardLibrary = ScoreboardLibrary.loadScoreboardLibrary(this);
         } catch (NoPacketAdapterAvailableException e) {
-            e.printStackTrace();
+            log.error("No packet adapter available for ScoreboardLibrary!", e);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -62,7 +64,7 @@ public class SkyRandomizer extends JavaPlugin {
         try {
             database.init();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Could not initialize database!", e);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }

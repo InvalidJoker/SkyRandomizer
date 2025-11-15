@@ -2,11 +2,13 @@ package de.joker.randomizer.cache;
 
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.data.PlayerData;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class PlayerCache {
 
     private final Database database;
@@ -36,7 +38,7 @@ public class PlayerCache {
                 allPlayers.put(uuid, playerData);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to load players from database", e);
         }
     }
 
@@ -63,7 +65,7 @@ public class PlayerCache {
                 return player;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to load player from database", e);
         }
 
         return null;
@@ -94,7 +96,7 @@ public class PlayerCache {
             ps.setInt(4, player.getIslandX());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to update player in database", e);
         }
     }
 
@@ -123,7 +125,7 @@ public class PlayerCache {
             ps.setInt(4, islandX);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Failed to update player island in database", e);
         }
     }
 
@@ -143,7 +145,7 @@ public class PlayerCache {
                 ps.setInt(4, 0);
                 ps.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("Failed to add new player to database", e);
             }
         }
     }
