@@ -24,7 +24,7 @@ public class PlayerCache {
         allPlayers.clear();
         try (Connection conn = database.getConnection();
              PreparedStatement ps = conn.prepareStatement("""
-                    SELECT uuid, name, max_distance, island_x
+                    SELECT uuid, name, max_distance, island_x, coins
                     FROM players
                 """)) {
             ResultSet rs = ps.executeQuery();
@@ -33,8 +33,9 @@ public class PlayerCache {
                 String name = rs.getString("name");
                 int maxDistance = rs.getInt("max_distance");
                 int islandX = rs.getInt("island_x");
+                int coins = rs.getInt("coins");
 
-                PlayerData playerData = new PlayerData(uuid, name, maxDistance, islandX);
+                PlayerData playerData = new PlayerData(uuid, name, maxDistance, islandX, coins);
                 allPlayers.put(uuid, playerData);
             }
         } catch (SQLException e) {
@@ -50,7 +51,7 @@ public class PlayerCache {
 
         try (Connection conn = database.getConnection();
              PreparedStatement ps = conn.prepareStatement("""
-                    SELECT uuid, name, max_distance, island_x
+                    SELECT uuid, name, max_distance, island_x, coins
                     FROM players WHERE uuid = ?
                 """)) {
             ps.setString(1, uuid.toString());
@@ -59,8 +60,9 @@ public class PlayerCache {
                 String name = rs.getString("name");
                 int maxDistance = rs.getInt("max_distance");
                 int islandX = rs.getInt("island_x");
+                int coins = rs.getInt("coins");
 
-                player = new PlayerData(uuid, name, maxDistance, islandX);
+                player = new PlayerData(uuid, name, maxDistance, islandX, coins);
                 allPlayers.put(uuid, player);
                 return player;
             }
@@ -74,7 +76,7 @@ public class PlayerCache {
     public synchronized void updatePlayer(UUID uuid, String name, int newDistance) {
         PlayerData player = getPlayer(uuid);
         if (player == null) {
-            player = new PlayerData(uuid, name, newDistance, 0);
+            player = new PlayerData(uuid, name, newDistance, 0, 0);
         } else {
             player.setDistance(newDistance);
             player.setName(name);
@@ -84,8 +86,8 @@ public class PlayerCache {
 
         try (Connection conn = database.getConnection()) {
             PreparedStatement ps = conn.prepareStatement("""
-                INSERT INTO players (uuid, name, max_distance, island_x)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO players (uuid, name, max_distance, island_x, coins)
+                VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(uuid) DO UPDATE SET
                 name = excluded.name,
                 max_distance = excluded.max_distance
@@ -94,6 +96,37 @@ public class PlayerCache {
             ps.setString(2, name);
             ps.setInt(3, newDistance);
             ps.setInt(4, player.getIslandX());
+            ps.setInt(5, player.getCoins());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void updatePlayerCoins(UUID uuid, String name, int newCoins) {
+        PlayerData player = getPlayer(uuid);
+        if (player == null) {
+            player = new PlayerData(uuid, name, 0, 0, newCoins);
+        } else {
+            player.setCoins(newCoins);
+            player.setName(name);
+        }
+
+        allPlayers.put(uuid, player);
+
+        try (Connection conn = database.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement("""
+                INSERT INTO players (uuid, name, max_distance, island_x, coins)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(uuid) DO UPDATE SET
+                name = excluded.name,
+                coins = excluded.coins
+            """);
+            ps.setString(1, uuid.toString());
+            ps.setString(2, name);
+            ps.setInt(3, player.getDistance());
+            ps.setInt(4, player.getIslandX());
+            ps.setInt(5, newCoins);
             ps.executeUpdate();
         } catch (SQLException e) {
             log.error("Failed to update player in database", e);
@@ -103,7 +136,7 @@ public class PlayerCache {
     public synchronized void updatePlayerIsland(UUID uuid, String name, int islandX) {
         PlayerData player = getPlayer(uuid);
         if (player == null) {
-            player = new PlayerData(uuid, name, 0, islandX);
+            player = new PlayerData(uuid, name, 0, islandX, 0);
         } else {
             player.setIslandX(islandX);
             player.setName(name);
@@ -113,8 +146,8 @@ public class PlayerCache {
 
         try (Connection conn = database.getConnection()) {
             PreparedStatement ps = conn.prepareStatement("""
-                INSERT INTO players (uuid, name, max_distance, island_x)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO players (uuid, name, max_distance, island_x, coins)
+                VALUES (?, ?, ?, ?, ?)
                 ON CONFLICT(uuid) DO UPDATE SET
                 name = excluded.name,
                 island_x = excluded.island_x
@@ -123,6 +156,7 @@ public class PlayerCache {
             ps.setString(2, name);
             ps.setInt(3, player.getDistance());
             ps.setInt(4, islandX);
+            ps.setInt(5, player.getCoins());
             ps.executeUpdate();
         } catch (SQLException e) {
             log.error("Failed to update player island in database", e);
@@ -131,18 +165,19 @@ public class PlayerCache {
 
     public synchronized void addPlayerIfNotExists(UUID uuid, String name) {
         if (!allPlayers.containsKey(uuid)) {
-            PlayerData newPlayer = new PlayerData(uuid, name, 0, 0);
+            PlayerData newPlayer = new PlayerData(uuid, name, 0, 0, 0);
             allPlayers.put(uuid, newPlayer);
 
             try (Connection conn = database.getConnection()) {
                 PreparedStatement ps = conn.prepareStatement("""
-                    INSERT INTO players (uuid, name, max_distance, island_x)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO players (uuid, name, max_distance, island_x, coins)
+                    VALUES (?, ?, ?, ?, ?)
                 """);
                 ps.setString(1, uuid.toString());
                 ps.setString(2, name);
                 ps.setInt(3, 0);
                 ps.setInt(4, 0);
+                ps.setInt(5, 0);
                 ps.executeUpdate();
             } catch (SQLException e) {
                 log.error("Failed to add new player to database", e);

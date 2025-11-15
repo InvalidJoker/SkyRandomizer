@@ -24,7 +24,8 @@ public class Database {
                     name TEXT,
                     island_x INTEGER,
                     island_z INTEGER,
-                    max_distance INTEGER DEFAULT 0
+                    max_distance INTEGER DEFAULT 0 CHECK ( max_distance >= 0 ),
+                    coins INTEGER DEFAULT 0 CHECK ( coins >= 0 )
                 );
             """);
         }
