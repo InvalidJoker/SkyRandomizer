@@ -1,6 +1,5 @@
 package de.joker.randomizer.manager;
 
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import de.cytooxien.realms.api.RealmInformationProvider;
 import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.utils.MessageUtils;

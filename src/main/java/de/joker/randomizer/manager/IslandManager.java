@@ -1,25 +1,20 @@
 package de.joker.randomizer.manager;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
-import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
-import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
 import de.cytooxien.realms.api.RealmPermissionProvider;
 import de.cytooxien.realms.api.model.Group;
+import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.cache.PlayerCache;
 import de.joker.randomizer.data.PlayerData;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,12 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class IslandManager {
 
     private final PlayerCache playerCache;
-    private final Map<UUID, Integer> textDisplays;
-    private int nextEntityId = 2_000_000;
+    private final Map<UUID, UUID> textDisplays;
+    private final SkyRandomizer plugin;
 
-    public IslandManager(PlayerCache playerCache) {
+    public IslandManager(PlayerCache playerCache, SkyRandomizer plugin) {
         this.playerCache = playerCache;
         this.textDisplays = new ConcurrentHashMap<>();
+        this.plugin = plugin;
     }
 
     private World getWorld() {
@@ -87,51 +83,40 @@ public class IslandManager {
         return playerData != null && playerData.getIslandX() != 0;
     }
 
-
     public void createBuildDisplay(Player player, int islandX) {
-        int entityId = nextEntityId++;
+        World world = player.getWorld();
 
         double y = player.getEyeLocation().getY();
         double z = 6.0;
-        Location location = new Location(player.getWorld(), islandX, y, z);
 
-        WrapperPlayServerSpawnEntity spawnPacket = new WrapperPlayServerSpawnEntity(
-                entityId,
-                Optional.of(UUID.randomUUID()),
-                EntityTypes.TEXT_DISPLAY,
-                new Vector3d(location.getX() + 0.5, location.getY(), location.getZ()),
-                0.0f,
-                180.0f,
-                180.0f,
-                0,
-                Optional.of(new Vector3d(0.0, 0.0, 0.0))
-        );
+        Location location = new Location(world, islandX + 0.5, y, z);
 
-        List<EntityData> metadata = new ArrayList<>();
+        TextDisplay display = world.spawn(location, TextDisplay.class, td -> {
+            td.text(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Baue in dieser Richtung um Punkte zu sammeln!"));
+            td.setBillboard(Display.Billboard.CENTER);
+            td.setShadowed(true);
+            td.setSeeThrough(false);
+            td.setPersistent(false);
+        });
 
-        metadata.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x00));
+        textDisplays.put(player.getUniqueId(), display.getUniqueId());
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            online.hideEntity(plugin, display);
+        }
 
-        Component adventureComponent = MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Baue in dieser Richtung um Punkte zu sammeln!");
-
-        metadata.add(new EntityData(23, EntityDataTypes.ADV_COMPONENT, adventureComponent));
-
-
-        WrapperPlayServerEntityMetadata metadataPacket =
-                new WrapperPlayServerEntityMetadata(entityId, metadata);
-
-        PacketEvents.getAPI().getPlayerManager().sendPacket(player, spawnPacket);
-        PacketEvents.getAPI().getPlayerManager().sendPacket(player, metadataPacket);
-
-        textDisplays.put(player.getUniqueId(), entityId);
+        player.showEntity(plugin, display);
     }
 
     public void removeDisplay(Player player) {
-        Integer entityId = textDisplays.remove(player.getUniqueId());
-        if (entityId != null) {
-            WrapperPlayServerDestroyEntities destroyPacket =
-                    new WrapperPlayServerDestroyEntities(entityId);
+        UUID entityId = textDisplays.remove(player.getUniqueId());
+        if (entityId == null) return;
 
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroyPacket);
+        for (World world : Bukkit.getWorlds()) {
+            Entity entity = world.getEntity(entityId);
+            if (entity != null) {
+                entity.remove();
+                break;
+            }
         }
     }
 

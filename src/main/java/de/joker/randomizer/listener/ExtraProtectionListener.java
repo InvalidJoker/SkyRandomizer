@@ -4,7 +4,6 @@ import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
 import de.joker.randomizer.utils.SpectatorUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;

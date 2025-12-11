@@ -28,7 +28,7 @@ public class ServiceManager {
         this.database = database;
         this.playerCache = new PlayerCache(database);
         this.ranking = new Ranking(playerCache);
-        this.islandManager = new IslandManager(playerCache);
+        this.islandManager = new IslandManager(playerCache, plugin);
         this.plugin = plugin;
         this.informationProvider = null;
     }
