@@ -18,10 +18,14 @@ public class PlayerData {
     @Setter
     private int islandX;
 
-    public PlayerData(UUID uuid, String name, int distance, int islandX) {
+    @Setter
+    private int coins;
+
+    public PlayerData(UUID uuid, String name, int distance, int islandX, int coins) {
         this.uuid = uuid;
         this.name = name;
         this.distance = distance;
         this.islandX = islandX;
+        this.coins = coins;
     }
 }
