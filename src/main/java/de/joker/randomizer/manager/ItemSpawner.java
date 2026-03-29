@@ -16,7 +16,13 @@ import org.bukkit.inventory.ItemType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 @SuppressWarnings("UnstableApiUsage")
 @Slf4j
@@ -76,13 +82,11 @@ public class ItemSpawner {
                 .getNearbyEntities(spawnLocation, 1.0, 1.0, 1.0, entity -> entity instanceof Item)
                 .size();
 
-        boolean isBlocked = itemCount >= MAX_ITEMS_PER_BLOCK;
-
-        if (isBlocked) {
+        if (itemCount >= MAX_ITEMS_PER_BLOCK) {
             for (Player player : state.players) {
                 BossBar bar = getBossBar(player);
                 bar.progress(1.0f);
-                bar.name(MessageUtils.parse("<gradient:#FF6B6B:#FF8E8E>Spawner blockiert! Sammle deine Items!"));
+                bar.name(MessageUtils.component(player, "itemspawner.blocked"));
                 bar.color(BossBar.Color.RED);
                 bar.addViewer(player);
             }
@@ -100,7 +104,7 @@ public class ItemSpawner {
         for (Player player : state.players) {
             BossBar bar = getBossBar(player);
             bar.progress(progress);
-            bar.name(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Nächstes Item in " + secondsLeft + "s"));
+            bar.name(MessageUtils.component(player, "itemspawner.next", MessageUtils.placeholder("seconds", secondsLeft)));
             bar.color(BossBar.Color.GREEN);
             bar.addViewer(player);
         }

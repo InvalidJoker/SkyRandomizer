@@ -1,18 +1,20 @@
 package de.joker.randomizer.manager;
 
+import de.cytooxien.realms.api.PlayerInformationProvider;
 import de.cytooxien.realms.api.RealmInformationProvider;
 import de.cytooxien.realms.api.RealmPermissionProvider;
 import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.cache.IslandCache;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.data.Ranking;
+import de.joker.randomizer.utils.LocalizationManager;
+import de.joker.randomizer.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
-
 
 @Getter
 public class ServiceManager {
@@ -23,8 +25,12 @@ public class ServiceManager {
     private final IslandManager islandManager;
     private final CoopManager coopManager;
     private final SkyRandomizer plugin;
+    private final LocalizationManager localizationManager;
+
     @Setter
     private ScoreboardManager scoreboardManager;
+
+    private PlayerInformationProvider playerInformationProvider;
     private RealmInformationProvider informationProvider;
     private RealmPermissionProvider permissionProvider;
 
@@ -35,11 +41,23 @@ public class ServiceManager {
         this.islandManager = new IslandManager(islandCache, plugin);
         this.coopManager = new CoopManager(this);
         this.plugin = plugin;
-        this.informationProvider = null;
+        this.localizationManager = new LocalizationManager(plugin, this::getPlayerInformationProvider);
+        MessageUtils.init(localizationManager);
     }
 
     public void shutdown() {
         islandCache.invalidateAll();
+    }
+
+    public PlayerInformationProvider getPlayerInformationProvider() {
+        try {
+            if (playerInformationProvider == null) {
+                playerInformationProvider = Bukkit.getServicesManager().load(PlayerInformationProvider.class);
+            }
+        } catch (Exception e) {
+            playerInformationProvider = null;
+        }
+        return playerInformationProvider;
     }
 
     public RealmInformationProvider getInformationProvider() {
@@ -70,15 +88,18 @@ public class ServiceManager {
         if (player.hasPermission("realms.booster")) {
             return true;
         }
+
         RealmInformationProvider informationProvider = getInformationProvider();
-        boolean booster = false;
         if (informationProvider != null) {
-            var boosts = informationProvider.boosts().value().stream().filter(b -> b.playerId().equals(uuid)).findFirst().orElse(null);
+            var boosts = informationProvider.boosts().value().stream()
+                    .filter(boost -> boost.playerId().equals(uuid))
+                    .findFirst()
+                    .orElse(null);
 
-            int boostsValue = (boosts != null) ? boosts.amount() : 0;
-
-            booster = boostsValue > 0;
+            int boostsValue = boosts != null ? boosts.amount() : 0;
+            return boostsValue > 0;
         }
-        return booster;
+
+        return false;
     }
 }

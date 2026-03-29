@@ -26,11 +26,11 @@ public class SpawnCommand {
                     }
 
                     if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
+                        MessageUtils.send(player, "command.booster_required");
                         return 0;
                     }
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
-                        MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurÃ¼ckkehren kannst!");
+                        MessageUtils.send(player, "command.spawn.no_island");
                         return 0;
                     }
 
@@ -42,7 +42,7 @@ public class SpawnCommand {
                         player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
                     }
 
-                    MessageUtils.send(player, "<green>Du wurdest zurÃ¼ck zu deiner Insel teleportiert!");
+                    MessageUtils.send(player, "command.spawn.teleported");
                     return 1;
                 })
                 .build();

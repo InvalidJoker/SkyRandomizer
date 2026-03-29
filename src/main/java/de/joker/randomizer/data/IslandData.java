@@ -59,7 +59,7 @@ public class IslandData {
                 .toList();
 
         if (names.isEmpty()) {
-            return "Unbekannt";
+            return "Unknown";
         }
 
         if (names.size() == 1) {

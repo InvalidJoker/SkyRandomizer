@@ -26,7 +26,10 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.util.Vector;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 public class PlayerListener implements Listener {
@@ -59,7 +62,8 @@ public class PlayerListener implements Listener {
             scoreboardManager.showScoreboard(player);
         }, 1L);
 
-        event.joinMessage(MessageUtils.parse("<green>" + player.getName() + " <gray>ist dem Spiel beigetreten!"));
+        event.joinMessage(null);
+        broadcastRaw("player.join", player.getName());
     }
 
     @EventHandler
@@ -69,7 +73,8 @@ public class PlayerListener implements Listener {
         scoreboardManager.removeScoreboard(player);
         lastTeleportTimes.remove(player.getUniqueId());
 
-        event.quitMessage(MessageUtils.parse("<red>" + player.getName() + " <gray>hat das Spiel verlassen!"));
+        event.quitMessage(null);
+        broadcastRaw("player.quit", player.getName());
     }
 
     @EventHandler
@@ -89,7 +94,7 @@ public class PlayerListener implements Listener {
 
         if (to.getY() < 15) {
             teleportToIsland(player, islandCenter);
-            MessageUtils.send(player, "<red>Du bist in die Leere gefallen! Du wirst zurÃ¼ck auf deine Insel teleportiert.");
+            MessageUtils.send(player, "player.void_fall");
             return;
         }
 
@@ -98,7 +103,7 @@ public class PlayerListener implements Listener {
 
         if (Math.abs(deltaX) > 3 || deltaZ < -3) {
             teleportToIsland(player, islandCenter);
-            MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 BlÃ¶cke von deiner Insel nach links, rechts oder hinten entfernen!");
+            MessageUtils.send(player, "player.move_limit");
         }
     }
 
@@ -121,7 +126,7 @@ public class PlayerListener implements Listener {
 
         if (blockLoc.getBlockX() == islandCenter.getBlockX() && blockLoc.getBlockZ() == islandCenter.getBlockZ()) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst nicht direkt auf dem Spawn-Block bauen!");
+            MessageUtils.send(player, "player.place_spawn_block");
             return;
         }
 
@@ -136,7 +141,7 @@ public class PlayerListener implements Listener {
 
         event.setCancelled(true);
         teleportToIsland(player, islandCenter);
-        MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 BlÃ¶cke von deiner Insel nach links, rechts oder hinten entfernen!");
+        MessageUtils.send(player, "player.move_limit");
     }
 
     @EventHandler
@@ -148,7 +153,6 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         Location blockLoc = event.getBlock().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
@@ -161,7 +165,7 @@ public class PlayerListener implements Listener {
 
         if (!Arrays.asList(allowedMaterials).contains(checkBlock.getType())) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst keine BlÃ¶cke abbauen, die mit deiner Insel verbunden sind!");
+            MessageUtils.send(player, "player.break_connected");
             return;
         }
 
@@ -171,7 +175,7 @@ public class PlayerListener implements Listener {
 
         event.setCancelled(true);
         teleportToIsland(player, islandCenter);
-        MessageUtils.send(player, "<red>Du kannst keine BlÃ¶cke auÃŸerhalb deiner Insel abbauen!");
+        MessageUtils.send(player, "player.break_outside");
     }
 
     private void applyIslandProgress(Player player, int distance) {
@@ -241,5 +245,11 @@ public class PlayerListener implements Listener {
             player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
         }
         lastTeleportTimes.put(player.getUniqueId(), Instant.now());
+    }
+
+    private void broadcastRaw(String key, String playerName) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            MessageUtils.sendRaw(onlinePlayer, key, MessageUtils.placeholder("player", playerName));
+        }
     }
 }

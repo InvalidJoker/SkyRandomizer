@@ -84,14 +84,14 @@ public class SkyRandomizer extends JavaPlugin {
         broadcastManager.start();
 
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
-            commands.registrar().register(new BackCommand(serviceManager).command(), "Teleportiert dich zum letzten erreichten Punkt deiner Insel.", List.of("front", "return", "zurueck"));
-            commands.registrar().register(new SpawnCommand(serviceManager).command(), "Teleportiert dich zum Spawn deiner Insel.");
-            commands.registrar().register(new EcCommand(serviceManager).command(), "Oeffnet deine Enderchest.", List.of("enderchest", "echest"));
-            commands.registrar().register(new WbCommand(serviceManager).command(), "Oeffnet eine Werkbank.", List.of("workbench", "werkbank", "work-bench"));
-            commands.registrar().register(new InviteCommand(serviceManager).command(), "Laedt einen Spieler auf deine Coop-Insel ein.");
-            commands.registrar().register(new AcceptInviteCommand(serviceManager).command(), "Nimmt eine Coop-Einladung an.");
-            commands.registrar().register(new DeclineInviteCommand(serviceManager).command(), "Lehnt eine Coop-Einladung ab.");
-            commands.registrar().register(new LeaveCoopCommand(serviceManager).command(), "Verlaesst deine aktuelle Coop-Insel.");
+            commands.registrar().register(new BackCommand(serviceManager).command(), "Teleport to the farthest point on your island.", List.of("front", "return", "zurueck"));
+            commands.registrar().register(new SpawnCommand(serviceManager).command(), "Teleport to your island spawn.");
+            commands.registrar().register(new EcCommand(serviceManager).command(), "Open your ender chest.", List.of("enderchest", "echest"));
+            commands.registrar().register(new WbCommand(serviceManager).command(), "Open a workbench.", List.of("workbench", "werkbank", "work-bench"));
+            commands.registrar().register(new InviteCommand(serviceManager).command(), "Invite a player to your coop island.");
+            commands.registrar().register(new AcceptInviteCommand(serviceManager).command(), "Accept a coop invitation.");
+            commands.registrar().register(new DeclineInviteCommand(serviceManager).command(), "Decline a coop invitation.");
+            commands.registrar().register(new LeaveCoopCommand(serviceManager).command(), "Leave your current coop island.");
         });
     }
 

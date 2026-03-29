@@ -34,18 +34,18 @@ public class BackCommand {
                     }
 
                     if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
+                        MessageUtils.send(player, "command.booster_required");
                         return 0;
                     }
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
-                        MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurÃ¼ckkehren kannst!");
+                        MessageUtils.send(player, "command.back.no_island");
                         return 0;
                     }
 
                     Instant lastTeleport = cooldownMap.get(player.getUniqueId());
                     Instant now = Instant.now();
                     if (lastTeleport != null && now.isBefore(lastTeleport.plusSeconds(30)) && !player.hasPermission("realms.bypass")) {
-                        MessageUtils.send(player, "<red>Du kannst erst in 30 Sekunden wieder zurÃ¼ck teleportieren!");
+                        MessageUtils.send(player, "command.back.cooldown", MessageUtils.placeholder("seconds", 30));
                         return 0;
                     }
 
@@ -55,12 +55,11 @@ public class BackCommand {
                     int startZ = location.getBlockZ();
                     PlayerRank rank = serviceManager.getRanking().getRankOfPlayer(player.getUniqueId());
                     if (rank == null) {
-                        MessageUtils.send(player, "<red>Dein Rang konnte nicht ermittelt werden!");
+                        MessageUtils.send(player, "command.back.rank_missing");
                         return 0;
                     }
-                    int maxDistance = rank.getDistance();
-                    int targetZ = startZ + maxDistance;
 
+                    int targetZ = startZ + rank.getDistance();
                     int lastGoodX = Integer.MIN_VALUE;
                     int lastGoodY = -1;
 
@@ -83,7 +82,7 @@ public class BackCommand {
                     }
 
                     if (lastGoodY == -1) {
-                        MessageUtils.send(player, "<red>Es wurde kein solider Block gefunden, zu dem du teleportiert werden kannst!");
+                        MessageUtils.send(player, "command.back.no_solid_block");
                         return 0;
                     }
 
@@ -100,7 +99,7 @@ public class BackCommand {
                     player.setFallDistance(0f);
                     cooldownMap.put(player.getUniqueId(), now);
                     player.setVelocity(new Vector(0, 0, 0));
-                    MessageUtils.send(player, "<green>Du wurdest zu deinem letzten Standort auf deiner Insel teleportiert!");
+                    MessageUtils.send(player, "command.back.teleported");
                     return 1;
                 })
                 .build();

@@ -23,7 +23,7 @@ public class WbCommand {
                     }
 
                     if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
+                        MessageUtils.send(player, "command.booster_required");
                         return 0;
                     }
                     player.openWorkbench(null, true);

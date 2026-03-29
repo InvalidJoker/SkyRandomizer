@@ -29,7 +29,7 @@ public class CoopManager {
         cleanupExpiredInvites(target.getUniqueId());
 
         if (inviter.getUniqueId().equals(target.getUniqueId())) {
-            MessageUtils.send(inviter, "<red>Du kannst dich nicht selbst einladen.");
+            MessageUtils.send(inviter, "coop.self_invite");
             return;
         }
 
@@ -41,51 +41,53 @@ public class CoopManager {
 
         IslandData targetIsland = serviceManager.getIslandManager().getIslandData(target);
         if (targetIsland != null && targetIsland.getId() == inviterIsland.getId()) {
-            MessageUtils.send(inviter, "<red>Dieser Spieler ist bereits auf deiner Insel.");
+            MessageUtils.send(inviter, "coop.already_same_island");
             return;
         }
 
         if (inviterIsland.getMemberCount() >= MAX_ISLAND_MEMBERS) {
-            MessageUtils.send(inviter, "<red>Deine Insel ist bereits voll. Maximal 4 Spieler sind erlaubt.");
+            MessageUtils.send(inviter, "coop.island_full_self", MessageUtils.placeholder("max", MAX_ISLAND_MEMBERS));
             return;
         }
 
         invites.computeIfAbsent(target.getUniqueId(), ignored -> new ConcurrentHashMap<>())
                 .put(inviter.getUniqueId(), Instant.now().plus(INVITE_TTL));
 
-        MessageUtils.send(inviter, "<green>Einladung an <white>" + target.getName() + "<green> gesendet.");
-        MessageUtils.send(target, "<green>" + inviter.getName() + " <gray>hat dich auf seine Insel eingeladen.");
-        MessageUtils.send(target, "<gray>Nutze <white>/acceptinvite " + inviter.getName() + " <gray>oder <white>/declineinvite " + inviter.getName());
+        MessageUtils.send(inviter, "coop.invite_sent", MessageUtils.placeholder("player", target.getName()));
+        MessageUtils.send(target, "coop.invite_received",
+                MessageUtils.placeholder("player", inviter.getName()),
+                MessageUtils.placeholder("accept_command", "/acceptinvite " + inviter.getName()),
+                MessageUtils.placeholder("decline_command", "/declineinvite " + inviter.getName()));
     }
 
     public void acceptInvite(Player player, Player inviter) {
         if (!hasInvite(player.getUniqueId(), inviter.getUniqueId())) {
-            MessageUtils.send(player, "<red>Von diesem Spieler liegt keine offene Einladung vor.");
+            MessageUtils.send(player, "coop.invite_none");
             return;
         }
 
         IslandData targetIsland = serviceManager.getIslandManager().getIslandData(inviter);
         if (targetIsland == null) {
             removeInvite(player.getUniqueId(), inviter.getUniqueId());
-            MessageUtils.send(player, "<red>Die Ziel-Insel konnte nicht gefunden werden.");
+            MessageUtils.send(player, "coop.target_island_missing");
             return;
         }
 
         IslandData currentIsland = serviceManager.getIslandManager().getIslandData(player);
         if (currentIsland != null && currentIsland.getId() == targetIsland.getId()) {
             removeInvite(player.getUniqueId(), inviter.getUniqueId());
-            MessageUtils.send(player, "<red>Du bist bereits auf dieser Insel.");
+            MessageUtils.send(player, "coop.already_on_island");
             return;
         }
 
         if (targetIsland.getMemberCount() >= MAX_ISLAND_MEMBERS) {
-            MessageUtils.send(player, "<red>Diese Insel ist bereits voll.");
+            MessageUtils.send(player, "coop.island_full_target", MessageUtils.placeholder("max", MAX_ISLAND_MEMBERS));
             return;
         }
 
         IslandAssignmentResult result = serviceManager.getIslandManager().movePlayerToIsland(player, targetIsland);
         if (result == null) {
-            MessageUtils.send(player, "<red>Die Einladung konnte nicht angenommen werden.");
+            MessageUtils.send(player, "coop.accept_failed");
             return;
         }
 
@@ -94,24 +96,24 @@ public class CoopManager {
         syncPlayerState(player, result.assignedIsland());
         serviceManager.getScoreboardManager().updateForAllPlayers();
 
-        MessageUtils.send(player, "<green>Du bist der Insel von <white>" + inviter.getName() + "<green> beigetreten.");
-        MessageUtils.send(inviter, "<green>" + player.getName() + " <gray>ist deiner Insel beigetreten.");
+        MessageUtils.send(player, "coop.accept_success", MessageUtils.placeholder("player", inviter.getName()));
+        MessageUtils.send(inviter, "coop.accept_notify", MessageUtils.placeholder("player", player.getName()));
     }
 
     public void declineInvite(Player player, Player inviter) {
         if (!removeInvite(player.getUniqueId(), inviter.getUniqueId())) {
-            MessageUtils.send(player, "<red>Von diesem Spieler liegt keine offene Einladung vor.");
+            MessageUtils.send(player, "coop.invite_none");
             return;
         }
 
-        MessageUtils.send(player, "<yellow>Du hast die Einladung von <white>" + inviter.getName() + "<yellow> abgelehnt.");
-        MessageUtils.send(inviter, "<yellow>" + player.getName() + " <gray>hat deine Einladung abgelehnt.");
+        MessageUtils.send(player, "coop.decline_self", MessageUtils.placeholder("player", inviter.getName()));
+        MessageUtils.send(inviter, "coop.decline_notify", MessageUtils.placeholder("player", player.getName()));
     }
 
     public void leaveCoop(Player player) {
         IslandData currentIsland = serviceManager.getIslandManager().getIslandData(player);
         if (currentIsland == null || currentIsland.getMemberCount() <= 1) {
-            MessageUtils.send(player, "<red>Du bist aktuell nicht in einer Koop-Insel.");
+            MessageUtils.send(player, "coop.leave_not_in_coop");
             return;
         }
 
@@ -120,10 +122,10 @@ public class CoopManager {
         syncPlayerState(player, result.assignedIsland());
         serviceManager.getScoreboardManager().updateForAllPlayers();
 
-        MessageUtils.send(player, "<green>Du hast die Koop-Insel verlassen und eine neue eigene Insel erhalten.");
+        MessageUtils.send(player, "coop.leave_success");
         for (Player onlineMember : serviceManager.getIslandManager().getOnlineMembers(currentIsland)) {
             if (!onlineMember.getUniqueId().equals(player.getUniqueId())) {
-                MessageUtils.send(onlineMember, "<yellow>" + player.getName() + " <gray>hat die Insel verlassen.");
+                MessageUtils.send(onlineMember, "coop.leave_notify", MessageUtils.placeholder("player", player.getName()));
             }
         }
     }

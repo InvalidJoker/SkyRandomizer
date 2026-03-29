@@ -24,7 +24,7 @@ public class CommandUtils {
         String playerName = context.getArgument(argumentName, String.class);
         Player player = Bukkit.getPlayerExact(playerName);
         if (player == null) {
-            MessageUtils.send(context.getSource().getSender(), "<red>Der Spieler " + playerName + " ist nicht online!");
+            MessageUtils.send(context.getSource().getSender(), "command.player_not_online", MessageUtils.placeholder("player", playerName));
         }
         return player;
     }
@@ -35,7 +35,7 @@ public class CommandUtils {
             return player;
         }
 
-        MessageUtils.send(sender, "<red>Dieser Befehl kann nur von einem Spieler ausgefÃ¼hrt werden.");
+        MessageUtils.send(sender, "command.players_only");
         return null;
     }
 }

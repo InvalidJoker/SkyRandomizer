@@ -18,7 +18,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -65,7 +69,6 @@ public class IslandManager {
 
         IslandData newIsland = assignmentResult.assignedIsland();
         generateIslandAt(newIsland.getIslandX());
-
         return getIslandLocation(newIsland);
     }
 
@@ -77,15 +80,13 @@ public class IslandManager {
 
         for (int i = -4; i <= 1; i++) {
             for (int y = centerY - 5; y <= centerY + 20; y++) {
-                Location barrierLocation = new Location(getWorld(), x + 4, y, i);
-                barrierLocation.getBlock().setType(Material.BARRIER);
+                new Location(getWorld(), x + 4, y, i).getBlock().setType(Material.BARRIER);
             }
         }
 
         for (int i = -4; i <= 4; i++) {
             for (int y = centerY - 5; y <= centerY + 20; y++) {
-                Location barrierLocation = new Location(getWorld(), x + i, y, -3);
-                barrierLocation.getBlock().setType(Material.BARRIER);
+                new Location(getWorld(), x + i, y, -3).getBlock().setType(Material.BARRIER);
             }
         }
     }
@@ -156,8 +157,7 @@ public class IslandManager {
         for (int x = island.getIslandX() - 3; x <= island.getIslandX() + 4; x++) {
             for (int z = -4; z <= maxZ; z++) {
                 for (int y = minY; y < maxY; y++) {
-                    Material replacement = Material.AIR;
-                    world.getBlockAt(x, y, z).setType(replacement, false);
+                    world.getBlockAt(x, y, z).setType(Material.AIR, false);
                 }
             }
         }
@@ -165,14 +165,10 @@ public class IslandManager {
 
     public void createBuildDisplay(Player player, int islandX) {
         World world = player.getWorld();
-
-        double y = player.getEyeLocation().getY();
-        double z = 6.0;
-
-        Location location = new Location(world, islandX + 0.5, y, z);
+        Location location = new Location(world, islandX + 0.5, player.getEyeLocation().getY(), 6.0);
 
         TextDisplay display = world.spawn(location, TextDisplay.class, td -> {
-            td.text(MessageUtils.parse("<gradient:#3AC47D:#8cd1bc>Baue in dieser Richtung um Punkte zu sammeln!"));
+            td.text(MessageUtils.component(player, "island.build_display"));
             td.setBillboard(Display.Billboard.CENTER);
             td.setShadowed(true);
             td.setSeeThrough(false);
@@ -186,7 +182,9 @@ public class IslandManager {
 
     public void removeDisplay(Player player) {
         UUID entityId = textDisplays.remove(player.getUniqueId());
-        if (entityId == null) return;
+        if (entityId == null) {
+            return;
+        }
 
         for (World world : Bukkit.getWorlds()) {
             Entity entity = world.getEntity(entityId);
@@ -211,31 +209,20 @@ public class IslandManager {
             }
         }
 
-        if (distance >= 100) {
-            Group newGroup = groups.stream().filter(group -> group.name().equals("build100")).findFirst().orElse(null);
+        maybeUnlockGroup(player, permissionProvider, groups, groupsOfPlayer, distance, 100, "build100");
+        maybeUnlockGroup(player, permissionProvider, groups, groupsOfPlayer, distance, 1000, "build1000");
+        maybeUnlockGroup(player, permissionProvider, groups, groupsOfPlayer, distance, 10000, "build10000");
+    }
 
-            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
-                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
-                MessageUtils.send(player, "<green>Du hast die 100 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
-            }
+    private void maybeUnlockGroup(Player player, RealmPermissionProvider permissionProvider, List<Group> groups, List<UUID> groupsOfPlayer, int distance, int requiredDistance, String groupName) {
+        if (distance < requiredDistance) {
+            return;
         }
 
-        if (distance >= 1000) {
-            Group newGroup = groups.stream().filter(group -> group.name().equals("build1000")).findFirst().orElse(null);
-
-            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
-                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
-                MessageUtils.send(player, "<green>Du hast die 1000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
-            }
-        }
-
-        if (distance >= 10000) {
-            Group newGroup = groups.stream().filter(group -> group.name().equals("build10000")).findFirst().orElse(null);
-
-            if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
-                permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
-                MessageUtils.send(player, "<green>Du hast die 10000 Blöcke-Marke erreicht und einen neuen Rang erhalten!");
-            }
+        Group newGroup = groups.stream().filter(group -> group.name().equals(groupName)).findFirst().orElse(null);
+        if (newGroup != null && !groupsOfPlayer.contains(newGroup.uniqueId())) {
+            permissionProvider.addPlayerToGroup(player.getUniqueId(), newGroup.uniqueId());
+            MessageUtils.send(player, "island.rank_reward", MessageUtils.placeholder("distance", requiredDistance));
         }
     }
 }
