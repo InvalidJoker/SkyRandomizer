@@ -25,16 +25,6 @@ public class Ranking {
         return islandCache.getTopIslands(3);
     }
 
-    public PlayerRank getRankOfPlayer(UUID uuid) {
-        IslandData island = islandCache.getIslandOfPlayer(uuid);
-        if (island == null) {
-            return null;
-        }
-
-        Optional<Integer> rank = islandCache.getIslandRank(island.getId());
-        return rank.map(r -> new PlayerRank(r, island.getDistance())).orElse(null);
-    }
-
     public List<IslandData> getTopIslands(int limit) {
         return islandCache.getTopIslands(limit);
     }

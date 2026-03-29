@@ -192,8 +192,7 @@ public class ItemSpawner {
             "itemGroup.op",
             "itemGroup.search",
             "itemGroup.inventory",
-            "itemGroup.hotbar",
-            "itemGroup.ingredients"
+            "itemGroup.hotbar"
     );
 
     private ItemStack getRandomMaterial() {

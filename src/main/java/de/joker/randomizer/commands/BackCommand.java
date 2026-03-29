@@ -1,7 +1,7 @@
 package de.joker.randomizer.commands;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import de.joker.randomizer.data.PlayerRank;
+import de.joker.randomizer.data.IslandData;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -53,7 +53,7 @@ public class BackCommand {
                     World world = location.getWorld();
                     int startX = location.getBlockX();
                     int startZ = location.getBlockZ();
-                    PlayerRank rank = serviceManager.getRanking().getRankOfPlayer(player.getUniqueId());
+                    IslandData rank = serviceManager.getRanking().getIslandOfPlayer(player.getUniqueId());
                     if (rank == null) {
                         MessageUtils.send(player, "command.back.rank_missing");
                         return 0;

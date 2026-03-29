@@ -2,7 +2,6 @@ package de.joker.randomizer.manager;
 
 import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.data.IslandData;
-import de.joker.randomizer.data.PlayerRank;
 import de.joker.randomizer.data.Ranking;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -48,17 +47,16 @@ public class ScoreboardManager {
         sidebar.title(MessageUtils.parse(MessageUtils.getName()));
         sidebar.clearLines();
 
-        PlayerRank rank = ranking.getRankOfPlayer(player.getUniqueId());
         IslandData playerIsland = ranking.getIslandOfPlayer(player.getUniqueId());
         List<IslandData> topIslands = ranking.getTop3();
 
-        if (rank == null || playerIsland == null) {
+        if (playerIsland == null) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> showScoreboard(player), 40L);
             return;
         }
 
         sidebar.line(0, MessageUtils.component(player, "scoreboard.distance_label"));
-        sidebar.line(1, MessageUtils.component(player, "scoreboard.distance_value", MessageUtils.placeholder("distance", rank.getDistance())));
+        sidebar.line(1, MessageUtils.component(player, "scoreboard.distance_value", MessageUtils.placeholder("distance", playerIsland.getDistance())));
         sidebar.line(2, MessageUtils.parse(""));
         sidebar.line(3, MessageUtils.component(player, "scoreboard.top_label"));
 
