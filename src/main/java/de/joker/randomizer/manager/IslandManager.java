@@ -3,8 +3,10 @@ package de.joker.randomizer.manager;
 import de.cytooxien.realms.api.RealmPermissionProvider;
 import de.cytooxien.realms.api.model.Group;
 import de.joker.randomizer.SkyRandomizer;
-import de.joker.randomizer.cache.PlayerCache;
-import de.joker.randomizer.data.PlayerData;
+import de.joker.randomizer.cache.IslandCache;
+import de.joker.randomizer.data.IslandAssignmentResult;
+import de.joker.randomizer.data.IslandData;
+import de.joker.randomizer.data.IslandMemberData;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
@@ -22,38 +24,49 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class IslandManager {
 
-    private final PlayerCache playerCache;
+    private final IslandCache islandCache;
     private final Map<UUID, UUID> textDisplays;
     private final SkyRandomizer plugin;
 
-    public IslandManager(PlayerCache playerCache, SkyRandomizer plugin) {
-        this.playerCache = playerCache;
+    public IslandManager(IslandCache islandCache, SkyRandomizer plugin) {
+        this.islandCache = islandCache;
         this.textDisplays = new ConcurrentHashMap<>();
         this.plugin = plugin;
     }
 
     private World getWorld() {
-        World world = Bukkit.getWorld("world");
+        World world = Bukkit.getWorld(SkyRandomizer.SEASON_WORLD_NAME);
         if (world == null) {
-            throw new IllegalStateException("World 'world' not found!");
+            throw new IllegalStateException("World '" + SkyRandomizer.SEASON_WORLD_NAME + "' not found!");
         }
         return world;
     }
 
-    public Location getOrCreateIsland(org.bukkit.entity.Player player) {
-        PlayerData playerData = playerCache.getPlayer(player.getUniqueId());
+    public IslandData getIslandData(UUID uuid) {
+        return islandCache.getIslandOfPlayer(uuid);
+    }
 
-        if (playerData != null && playerData.getIslandX() != 0) {
-            return new Location(getWorld(), playerData.getIslandX(), 64, 0);
+    public IslandData getIslandData(Player player) {
+        return getIslandData(player.getUniqueId());
+    }
+
+    public Location getOrCreateIsland(Player player) {
+        islandCache.updateMemberName(player.getUniqueId(), player.getName());
+        IslandData islandData = islandCache.getIslandOfPlayer(player.getUniqueId());
+
+        if (islandData != null) {
+            return getIslandLocation(islandData);
         }
 
-        int newIslandX = playerCache.getNextFreeIslandX();
+        IslandAssignmentResult assignmentResult = islandCache.assignPlayerToNewIsland(player.getUniqueId(), player.getName());
+        if (assignmentResult == null) {
+            throw new IllegalStateException("Could not create island for player " + player.getName());
+        }
 
-        generateIslandAt(newIslandX);
+        IslandData newIsland = assignmentResult.assignedIsland();
+        generateIslandAt(newIsland.getIslandX());
 
-        playerCache.updatePlayerIsland(player.getUniqueId(), player.getName(), newIslandX);
-
-        return new Location(getWorld(), newIslandX, 64, 0);
+        return getIslandLocation(newIsland);
     }
 
     private void generateIslandAt(int x) {
@@ -68,19 +81,86 @@ public class IslandManager {
                 barrierLocation.getBlock().setType(Material.BARRIER);
             }
         }
-    }
 
-    public Location getIslandLocation(org.bukkit.entity.Player player) {
-        PlayerData playerData = playerCache.getPlayer(player.getUniqueId());
-        if (playerData != null && playerData.getIslandX() != 0) {
-            return new Location(getWorld(), playerData.getIslandX(), 64, 0);
+        for (int i = -4; i <= 4; i++) {
+            for (int y = centerY - 5; y <= centerY + 20; y++) {
+                Location barrierLocation = new Location(getWorld(), x + i, y, -3);
+                barrierLocation.getBlock().setType(Material.BARRIER);
+            }
         }
-        return null;
     }
 
-    public boolean hasIsland(org.bukkit.entity.Player player) {
-        PlayerData playerData = playerCache.getPlayer(player.getUniqueId());
-        return playerData != null && playerData.getIslandX() != 0;
+    public IslandAssignmentResult createFreshIslandForPlayer(Player player) {
+        IslandAssignmentResult assignmentResult = islandCache.assignPlayerToNewIsland(player.getUniqueId(), player.getName());
+        if (assignmentResult == null) {
+            throw new IllegalStateException("Could not create a fresh island for player " + player.getName());
+        }
+
+        if (assignmentResult.deletedIsland() != null) {
+            wipeIsland(assignmentResult.deletedIsland());
+        }
+
+        generateIslandAt(assignmentResult.assignedIsland().getIslandX());
+        return assignmentResult;
+    }
+
+    public IslandAssignmentResult movePlayerToIsland(Player player, IslandData targetIsland) {
+        IslandAssignmentResult assignmentResult = islandCache.assignPlayerToIsland(player.getUniqueId(), player.getName(), targetIsland.getId());
+        if (assignmentResult == null) {
+            throw new IllegalStateException("Could not move player " + player.getName() + " to island " + targetIsland.getId());
+        }
+
+        if (assignmentResult.deletedIsland() != null) {
+            wipeIsland(assignmentResult.deletedIsland());
+        }
+
+        return assignmentResult;
+    }
+
+    public Location getIslandLocation(Player player) {
+        IslandData islandData = islandCache.getIslandOfPlayer(player.getUniqueId());
+        return islandData == null ? null : getIslandLocation(islandData);
+    }
+
+    public Location getIslandLocation(IslandData islandData) {
+        return new Location(getWorld(), islandData.getIslandX(), 64, 0);
+    }
+
+    public boolean hasIsland(Player player) {
+        return islandCache.getIslandOfPlayer(player.getUniqueId()) != null;
+    }
+
+    public Collection<Player> getOnlineMembers(IslandData island) {
+        List<Player> players = new ArrayList<>();
+        for (IslandMemberData member : island.getMembersView()) {
+            Player onlinePlayer = Bukkit.getPlayer(member.getUuid());
+            if (onlinePlayer != null && onlinePlayer.isOnline()) {
+                players.add(onlinePlayer);
+            }
+        }
+        return players;
+    }
+
+    public void removeDisplays(IslandData island) {
+        for (Player onlineMember : getOnlineMembers(island)) {
+            removeDisplay(onlineMember);
+        }
+    }
+
+    public void wipeIsland(IslandData island) {
+        World world = getWorld();
+        int minY = world.getMinHeight();
+        int maxY = world.getMaxHeight();
+        int maxZ = Math.max(1, island.getDistance() + 1);
+
+        for (int x = island.getIslandX() - 3; x <= island.getIslandX() + 4; x++) {
+            for (int z = -4; z <= maxZ; z++) {
+                for (int y = minY; y < maxY; y++) {
+                    Material replacement = Material.AIR;
+                    world.getBlockAt(x, y, z).setType(replacement, false);
+                }
+            }
+        }
     }
 
     public void createBuildDisplay(Player player, int islandX) {

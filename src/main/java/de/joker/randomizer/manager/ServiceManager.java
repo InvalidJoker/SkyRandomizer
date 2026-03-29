@@ -3,10 +3,11 @@ package de.joker.randomizer.manager;
 import de.cytooxien.realms.api.RealmInformationProvider;
 import de.cytooxien.realms.api.RealmPermissionProvider;
 import de.joker.randomizer.SkyRandomizer;
-import de.joker.randomizer.cache.PlayerCache;
+import de.joker.randomizer.cache.IslandCache;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.data.Ranking;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -17,24 +18,28 @@ import java.util.UUID;
 public class ServiceManager {
 
     private final Database database;
-    private final PlayerCache playerCache;
+    private final IslandCache islandCache;
     private final Ranking ranking;
     private final IslandManager islandManager;
+    private final CoopManager coopManager;
     private final SkyRandomizer plugin;
+    @Setter
+    private ScoreboardManager scoreboardManager;
     private RealmInformationProvider informationProvider;
     private RealmPermissionProvider permissionProvider;
 
     public ServiceManager(Database database, SkyRandomizer plugin) {
         this.database = database;
-        this.playerCache = new PlayerCache(database);
-        this.ranking = new Ranking(playerCache);
-        this.islandManager = new IslandManager(playerCache, plugin);
+        this.islandCache = new IslandCache(database);
+        this.ranking = new Ranking(islandCache);
+        this.islandManager = new IslandManager(islandCache, plugin);
+        this.coopManager = new CoopManager(this);
         this.plugin = plugin;
         this.informationProvider = null;
     }
 
     public void shutdown() {
-        playerCache.invalidateAll();
+        islandCache.invalidateAll();
     }
 
     public RealmInformationProvider getInformationProvider() {

@@ -6,22 +6,18 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Getter
-public class PlayerData {
+public class IslandMemberData {
     private final UUID uuid;
 
     @Setter
     private String name;
 
     @Setter
-    private int distance;
+    private long islandId;
 
-    @Setter
-    private int islandX;
-
-    public PlayerData(UUID uuid, String name, int distance, int islandX) {
+    public IslandMemberData(UUID uuid, String name, long islandId) {
         this.uuid = uuid;
         this.name = name;
-        this.distance = distance;
-        this.islandX = islandX;
+        this.islandId = islandId;
     }
 }

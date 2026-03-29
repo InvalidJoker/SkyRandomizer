@@ -1,44 +1,45 @@
 package de.joker.randomizer.data;
 
-import de.joker.randomizer.cache.PlayerCache;
+import de.joker.randomizer.cache.IslandCache;
 
 import java.util.*;
 
 public class Ranking {
 
-    private final PlayerCache playerCache;
+    private final IslandCache islandCache;
 
-    public Ranking(PlayerCache playerCache) {
-        this.playerCache = playerCache;
+    public Ranking(IslandCache islandCache) {
+        this.islandCache = islandCache;
     }
 
     public synchronized void updatePlayer(UUID uuid, String name, int newDistance) {
-        playerCache.updatePlayer(uuid, name, newDistance);
+        IslandData island = islandCache.getIslandOfPlayer(uuid);
+        if (island == null) {
+            return;
+        }
+        islandCache.updateMemberName(uuid, name);
+        islandCache.updateIslandDistance(island.getId(), newDistance);
     }
 
-    public void addPlayerIfNotExists(UUID uuid, String name) {
-        playerCache.addPlayerIfNotExists(uuid, name);
-    }
-
-    public List<PlayerData> getTop3() {
-        return playerCache.getTopPlayers(3);
+    public List<IslandData> getTop3() {
+        return islandCache.getTopIslands(3);
     }
 
     public PlayerRank getRankOfPlayer(UUID uuid) {
-        PlayerData player = playerCache.getPlayer(uuid);
-        if (player == null) {
+        IslandData island = islandCache.getIslandOfPlayer(uuid);
+        if (island == null) {
             return null;
         }
 
-        Optional<Integer> rank = playerCache.getPlayerRank(uuid);
-        return rank.map(r -> new PlayerRank(r, player.getDistance())).orElse(null);
+        Optional<Integer> rank = islandCache.getIslandRank(island.getId());
+        return rank.map(r -> new PlayerRank(r, island.getDistance())).orElse(null);
     }
 
-    public List<PlayerData> getTopPlayers(int limit) {
-        return playerCache.getTopPlayers(limit);
+    public List<IslandData> getTopIslands(int limit) {
+        return islandCache.getTopIslands(limit);
     }
 
-    public PlayerData getPlayer(UUID uuid) {
-        return playerCache.getPlayer(uuid);
+    public IslandData getIslandOfPlayer(UUID uuid) {
+        return islandCache.getIslandOfPlayer(uuid);
     }
 }

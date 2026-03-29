@@ -1,7 +1,7 @@
 package de.joker.randomizer.manager;
 
 import de.joker.randomizer.SkyRandomizer;
-import de.joker.randomizer.data.PlayerData;
+import de.joker.randomizer.data.IslandData;
 import de.joker.randomizer.data.PlayerRank;
 import de.joker.randomizer.data.Ranking;
 import de.joker.randomizer.utils.MessageUtils;
@@ -49,59 +49,40 @@ public class ScoreboardManager {
         }
 
         sidebar.title(MessageUtils.parse(MessageUtils.getName()));
-
         sidebar.clearLines();
 
         PlayerRank rank = ranking.getRankOfPlayer(player.getUniqueId());
-        List<PlayerData> topPlayers = ranking.getTop3();
+        IslandData playerIsland = ranking.getIslandOfPlayer(player.getUniqueId());
+        List<IslandData> topIslands = ranking.getTop3();
 
-        if (rank == null) {
+        if (rank == null || playerIsland == null) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> showScoreboard(player), 40L);
             return;
         }
 
-        sidebar.line(0,
-                MessageUtils.parse("<gray>Distanz: <white>")
-        );
-        sidebar.line(1,
-                MessageUtils.parse(
-                        "<white>" + rank.getDistance() + " Blöcke"
-                )
-        );
-        sidebar.line(2,
-                MessageUtils.parse("")
-        );
-        sidebar.line(3,
-                MessageUtils.parse("<gray>Rangliste: <white>")
-        );
-        for (int i = 0; i < topPlayers.size(); i++) {
-            PlayerData playerData = topPlayers.get(i);
+        sidebar.line(0, MessageUtils.parse("<gray>Distanz: <white>"));
+        sidebar.line(1, MessageUtils.parse("<white>" + rank.getDistance() + " BlÃ¶cke"));
+        sidebar.line(2, MessageUtils.parse(""));
+        sidebar.line(3, MessageUtils.parse("<gray>Top-Inseln: <white>"));
+
+        for (int i = 0; i < topIslands.size(); i++) {
+            IslandData islandData = topIslands.get(i);
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            String playerColor = playerData.getUuid().equals(player.getUniqueId()) ? "<green>" : "<white>";
-            sidebar.line(4 + i,
-                    MessageUtils.parse(
-                            rankColor + (i + 1) + ". " + playerColor + playerData.getName() + " <gray>(" + playerData.getDistance() + " Blöcke)"
-                    )
-            );
+            String islandColor = islandData.getId() == playerIsland.getId() ? "<green>" : "<white>";
+            sidebar.line(4 + i, MessageUtils.parse(
+                    rankColor + (i + 1) + ". " + islandColor + islandData.getDisplayName() + " <gray>(" + islandData.getDistance() + " BlÃ¶cke)"
+            ));
         }
 
-        for (int i = topPlayers.size(); i < 3; i++) {
+        for (int i = topIslands.size(); i < 3; i++) {
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            sidebar.line(4 + i,
-                    MessageUtils.parse(
-                            rankColor + (i + 1) + ". <white> - <gray>(0 Blöcke)"
-                    )
-            );
+            sidebar.line(4 + i, MessageUtils.parse(rankColor + (i + 1) + ". <white>- <gray>(0 BlÃ¶cke)"));
         }
 
-        if (topPlayers.stream().noneMatch(pd -> pd.getUuid().equals(player.getUniqueId()))) {
-            sidebar.line(4 + topPlayers.size(),
-                    MessageUtils.parse(
-                            "<white>" + (
-                                    rank.getRank() + 1
-                            ) + ". <green>" + player.getName() + " <gray>(" + rank.getDistance() + " Blöcke)"
-                    )
-            );
+        if (topIslands.stream().noneMatch(island -> island.getId() == playerIsland.getId())) {
+            sidebar.line(4 + topIslands.size(), MessageUtils.parse(
+                    "<white>" + rank.getRank() + ". <green>" + playerIsland.getDisplayName() + " <gray>(" + rank.getDistance() + " BlÃ¶cke)"
+            ));
         }
 
         sidebar.addPlayer(player);

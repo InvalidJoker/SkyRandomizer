@@ -1,7 +1,11 @@
 package de.joker.randomizer;
 
+import de.joker.randomizer.commands.AcceptInviteCommand;
 import de.joker.randomizer.commands.BackCommand;
+import de.joker.randomizer.commands.DeclineInviteCommand;
 import de.joker.randomizer.commands.EcCommand;
+import de.joker.randomizer.commands.InviteCommand;
+import de.joker.randomizer.commands.LeaveCoopCommand;
 import de.joker.randomizer.commands.SpawnCommand;
 import de.joker.randomizer.commands.WbCommand;
 import de.joker.randomizer.data.Database;
@@ -15,21 +19,29 @@ import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.VoidGenerator;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIPaperConfig;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
 import net.megavex.scoreboardlibrary.api.exception.NoPacketAdapterAvailableException;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRules;
+import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
 @Getter
 public class SkyRandomizer extends JavaPlugin {
+    public static final String SEASON_WORLD_NAME = "season2";
+    public static final String SEASON_DATABASE_NAME = "season2.db";
+
     private ServiceManager serviceManager;
     private ScoreboardLibrary scoreboardLibrary;
 
@@ -73,6 +85,7 @@ public class SkyRandomizer extends JavaPlugin {
 
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
         ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
+        serviceManager.setScoreboardManager(scoreboardManager);
         BroadcastManager broadcastManager = new BroadcastManager(this);
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager), this);
@@ -86,6 +99,14 @@ public class SkyRandomizer extends JavaPlugin {
         new SpawnCommand(serviceManager).build().register();
         new EcCommand(serviceManager).build().register();
         new WbCommand(serviceManager).build().register();
+        new InviteCommand(serviceManager).build().register();
+        new DeclineInviteCommand(serviceManager).build().register();
+        new LeaveCoopCommand(serviceManager).build().register();
+
+
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
+            commands.registrar().register(new AcceptInviteCommand(serviceManager).command());
+        });
     }
 
     @Override
