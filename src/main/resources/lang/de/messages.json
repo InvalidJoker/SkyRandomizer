@@ -50,5 +50,8 @@
   "scoreboard.top_label": "<gray>Top-Inseln: <white>",
   "scoreboard.entry": "{rank_color}{rank}. {name_color}{name} <gray>({distance} Bloecke)",
   "scoreboard.empty_entry": "{rank_color}{rank}. <white>- <gray>(0 Bloecke)",
-  "scoreboard.self_entry": "<white>{rank}. <green>{name} <gray>({distance} Bloecke)"
+  "scoreboard.self_entry": "<white>{rank}. <green>{name} <gray>({distance} Bloecke)",
+  "broadcast.reminder_expand_island": "<gradient:#FFAA00:#FFDD55>Vergiss nicht, deine Insel regelmaessig auszubauen!",
+  "broadcast.booster_benefits": "<gradient:#55FF55:#AAFFAA><color:#C678DD><bold>Booste</bold></color> den Realm, um coole Vorteile wie <gold>/back</gold> oder eine <italic>kuerzere Wartezeit</italic> zu erhalten!</gradient>",
+  "broadcast.play_fair": "<gradient:#55FFFF:#AAFFFF>Spiele fair und habe Spass!"
 }

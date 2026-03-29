@@ -50,5 +50,8 @@
   "scoreboard.top_label": "<gray>Top islands: <white>",
   "scoreboard.entry": "{rank_color}{rank}. {name_color}{name} <gray>({distance} blocks)",
   "scoreboard.empty_entry": "{rank_color}{rank}. <white>- <gray>(0 blocks)",
-  "scoreboard.self_entry": "<white>{rank}. <green>{name} <gray>({distance} blocks)"
+  "scoreboard.self_entry": "<white>{rank}. <green>{name} <gray>({distance} blocks)",
+  "broadcast.reminder_expand_island": "<gradient:#FFAA00:#FFDD55>Don't forget to expand your island regularly!",
+  "broadcast.booster_benefits": "<gradient:#55FF55:#AAFFAA><color:#C678DD><bold>Boost</bold></color> the realm to get cool perks like <gold>/back</gold> or a <italic>shorter cooldown</italic>!</gradient>",
+  "broadcast.play_fair": "<gradient:#55FFFF:#AAFFFF>Play fair and have fun!"
 }
