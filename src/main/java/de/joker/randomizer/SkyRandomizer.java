@@ -72,7 +72,7 @@ public class SkyRandomizer extends JavaPlugin {
         serviceManager = new ServiceManager(database, this);
 
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
-        ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
+        ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking(), serviceManager.getIslandCache());
         serviceManager.setScoreboardManager(scoreboardManager);
         BroadcastManager broadcastManager = new BroadcastManager(this);
 

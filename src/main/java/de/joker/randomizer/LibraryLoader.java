@@ -43,11 +43,7 @@ public class LibraryLoader implements PluginLoader {
 
         public Stream<RemoteRepository> asRepositories() {
             return repositories.entrySet().stream()
-                    .map(e -> {
-                        var url = e.getValue();
-                        if (url.matches("https://repo.maven.apache.org/maven2/")) url = "https://maven-central.storage-download.googleapis.com/maven2";
-                        return new RemoteRepository.Builder(e.getKey(), "default", url).build();
-                    });
+                    .map(e -> new RemoteRepository.Builder(e.getKey(), "default", e.getValue()).build());
         }
     }
 }

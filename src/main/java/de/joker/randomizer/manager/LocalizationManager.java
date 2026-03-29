@@ -1,10 +1,11 @@
-package de.joker.randomizer.utils;
+package de.joker.randomizer.manager;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import de.cytooxien.realms.api.PlayerInformationProvider;
 import de.cytooxien.realms.api.enums.Language;
 import de.joker.randomizer.SkyRandomizer;
+import de.joker.randomizer.utils.MessagePlaceholder;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.entity.Player;

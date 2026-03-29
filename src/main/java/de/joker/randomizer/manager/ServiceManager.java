@@ -7,7 +7,6 @@ import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.cache.IslandCache;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.data.Ranking;
-import de.joker.randomizer.utils.LocalizationManager;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.Getter;
 import lombok.Setter;

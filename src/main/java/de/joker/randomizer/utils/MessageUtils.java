@@ -1,5 +1,6 @@
 package de.joker.randomizer.utils;
 
+import de.joker.randomizer.manager.LocalizationManager;
 import lombok.Getter;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;

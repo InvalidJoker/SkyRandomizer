@@ -1,6 +1,7 @@
 package de.joker.randomizer.manager;
 
 import de.joker.randomizer.SkyRandomizer;
+import de.joker.randomizer.cache.IslandCache;
 import de.joker.randomizer.data.IslandData;
 import de.joker.randomizer.data.Ranking;
 import de.joker.randomizer.utils.MessageUtils;
@@ -12,17 +13,20 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class ScoreboardManager {
 
     private final SkyRandomizer plugin;
     private final Ranking ranking;
+    private final IslandCache islandCache;
     private final Map<Player, Sidebar> scoreboards;
 
-    public ScoreboardManager(SkyRandomizer plugin, Ranking ranking) {
+    public ScoreboardManager(SkyRandomizer plugin, Ranking ranking, IslandCache islandCache) {
         this.plugin = plugin;
         this.ranking = ranking;
+        this.islandCache = islandCache;
         this.scoreboards = new HashMap<>();
     }
 
@@ -55,6 +59,9 @@ public class ScoreboardManager {
             return;
         }
 
+        Integer rank = islandCache.getIslandRank(playerIsland.getId()).orElse(999);
+
+
         sidebar.line(0, MessageUtils.component(player, "scoreboard.distance_label"));
         sidebar.line(1, MessageUtils.component(player, "scoreboard.distance_value", MessageUtils.placeholder("distance", playerIsland.getDistance())));
         sidebar.line(2, MessageUtils.parse(""));
@@ -81,9 +88,9 @@ public class ScoreboardManager {
 
         if (topIslands.stream().noneMatch(island -> island.getId() == playerIsland.getId())) {
             sidebar.line(4 + topIslands.size(), MessageUtils.component(player, "scoreboard.self_entry",
-                    MessageUtils.placeholder("rank", rank.getRank()),
+                    MessageUtils.placeholder("rank", rank),
                     MessageUtils.placeholder("name", playerIsland.getDisplayName()),
-                    MessageUtils.placeholder("distance", rank.getDistance())));
+                    MessageUtils.placeholder("distance", playerIsland.getDistance())));
         }
 
         sidebar.addPlayer(player);
