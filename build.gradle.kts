@@ -38,8 +38,6 @@ dependencies {
     runtimeOnly("net.megavex:scoreboard-library-implementation:2.7.0")
 
     compileOnly("com.github.cytooxien:realms-api:4.0.1")
-
-    implementation("dev.jorel:commandapi-paper-shade:11.1.0")
 }
 
 
@@ -76,7 +74,6 @@ tasks {
         archiveFileName.set("${project.name}.jar")
         minimize {
             exclude(dependency("net.megavex:scoreboard-library-.*:.*"))
-            exclude(dependency("dev.jorel:commandapi-.*:.*"))
             exclude(dependency("org.xerial:sqlite-jdbc:.*"))
         }
 

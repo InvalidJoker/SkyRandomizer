@@ -17,17 +17,12 @@ import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.VoidGenerator;
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIPaperConfig;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
 import net.megavex.scoreboardlibrary.api.exception.NoPacketAdapterAvailableException;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRules;
-import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -52,17 +47,10 @@ public class SkyRandomizer extends JavaPlugin {
     }
 
     @Override
-    public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIPaperConfig(this));
-    }
-
-    @Override
     public void onEnable() {
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }
-
-        CommandAPI.onEnable();
 
         try {
             scoreboardLibrary = ScoreboardLibrary.loadScoreboardLibrary(this);
@@ -95,24 +83,20 @@ public class SkyRandomizer extends JavaPlugin {
         itemSpawner.start();
         broadcastManager.start();
 
-        new BackCommand(serviceManager).build().register();
-        new SpawnCommand(serviceManager).build().register();
-        new EcCommand(serviceManager).build().register();
-        new WbCommand(serviceManager).build().register();
-        new InviteCommand(serviceManager).build().register();
-        new DeclineInviteCommand(serviceManager).build().register();
-        new LeaveCoopCommand(serviceManager).build().register();
-
-
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
-            commands.registrar().register(new AcceptInviteCommand(serviceManager).command());
+            commands.registrar().register(new BackCommand(serviceManager).command(), "Teleportiert dich zum letzten erreichten Punkt deiner Insel.", List.of("front", "return", "zurueck"));
+            commands.registrar().register(new SpawnCommand(serviceManager).command(), "Teleportiert dich zum Spawn deiner Insel.");
+            commands.registrar().register(new EcCommand(serviceManager).command(), "Oeffnet deine Enderchest.", List.of("enderchest", "echest"));
+            commands.registrar().register(new WbCommand(serviceManager).command(), "Oeffnet eine Werkbank.", List.of("workbench", "werkbank", "work-bench"));
+            commands.registrar().register(new InviteCommand(serviceManager).command(), "Laedt einen Spieler auf deine Coop-Insel ein.");
+            commands.registrar().register(new AcceptInviteCommand(serviceManager).command(), "Nimmt eine Coop-Einladung an.");
+            commands.registrar().register(new DeclineInviteCommand(serviceManager).command(), "Lehnt eine Coop-Einladung ab.");
+            commands.registrar().register(new LeaveCoopCommand(serviceManager).command(), "Verlaesst deine aktuelle Coop-Insel.");
         });
     }
 
     @Override
     public void onDisable() {
-        CommandAPI.onDisable();
-
         serviceManager.shutdown();
     }
 }

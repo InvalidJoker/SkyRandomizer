@@ -1,9 +1,10 @@
 package de.joker.randomizer.commands;
 
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.joker.randomizer.manager.ServiceManager;
-import dev.jorel.commandapi.CommandTree;
-import dev.jorel.commandapi.arguments.EntitySelectorArgument;
-import dev.jorel.commandapi.executors.PlayerCommandExecutor;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.entity.Player;
 
 public class DeclineInviteCommand {
@@ -14,10 +15,24 @@ public class DeclineInviteCommand {
         this.serviceManager = serviceManager;
     }
 
-    public CommandTree build() {
-        return new CommandTree("declineinvite")
-                .then(new EntitySelectorArgument.OnePlayer("player")
-                        .executesPlayer((PlayerCommandExecutor) (player, args) ->
-                                serviceManager.getCoopManager().declineInvite(player, (Player) args.get("player"))));
+    public LiteralCommandNode<CommandSourceStack> command() {
+        return Commands.literal("declineinvite")
+                .then(Commands.argument("player", StringArgumentType.word())
+                        .suggests(CommandUtils::suggestOnlinePlayers)
+                        .executes(context -> {
+                            Player target = CommandUtils.getOnlinePlayer(context, "player");
+                            if (target == null) {
+                                return 0;
+                            }
+
+                            Player source = CommandUtils.getPlayerSender(context.getSource());
+                            if (source == null) {
+                                return 0;
+                            }
+
+                            serviceManager.getCoopManager().declineInvite(source, target);
+                            return 1;
+                        }))
+                .build();
     }
 }

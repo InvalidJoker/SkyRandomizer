@@ -1,8 +1,10 @@
 package de.joker.randomizer.commands;
 
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.joker.randomizer.manager.ServiceManager;
-import dev.jorel.commandapi.CommandTree;
-import dev.jorel.commandapi.executors.PlayerCommandExecutor;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
+import org.bukkit.entity.Player;
 
 public class LeaveCoopCommand {
 
@@ -12,8 +14,17 @@ public class LeaveCoopCommand {
         this.serviceManager = serviceManager;
     }
 
-    public CommandTree build() {
-        return new CommandTree("leavecoop")
-                .executesPlayer((PlayerCommandExecutor) (player, args) -> serviceManager.getCoopManager().leaveCoop(player));
+    public LiteralCommandNode<CommandSourceStack> command() {
+        return Commands.literal("leavecoop")
+                .executes(context -> {
+                    Player source = CommandUtils.getPlayerSender(context.getSource());
+                    if (source == null) {
+                        return 0;
+                    }
+
+                    serviceManager.getCoopManager().leaveCoop(source);
+                    return 1;
+                })
+                .build();
     }
 }

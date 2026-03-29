@@ -70,18 +70,18 @@ public class ScoreboardManager {
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
             String islandColor = islandData.getId() == playerIsland.getId() ? "<green>" : "<white>";
             sidebar.line(4 + i, MessageUtils.parse(
-                    rankColor + (i + 1) + ". " + islandColor + islandData.getDisplayName() + " <gray>(" + islandData.getDistance() + " BlÃ¶cke)"
+                    rankColor + (i + 1) + ". " + islandColor + islandData.getDisplayName() + " <gray>(" + islandData.getDistance() + " Blöcke)"
             ));
         }
 
         for (int i = topIslands.size(); i < 3; i++) {
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            sidebar.line(4 + i, MessageUtils.parse(rankColor + (i + 1) + ". <white>- <gray>(0 BlÃ¶cke)"));
+            sidebar.line(4 + i, MessageUtils.parse(rankColor + (i + 1) + ". <white>- <gray>(0 Blöcke)"));
         }
 
         if (topIslands.stream().noneMatch(island -> island.getId() == playerIsland.getId())) {
             sidebar.line(4 + topIslands.size(), MessageUtils.parse(
-                    "<white>" + rank.getRank() + ". <green>" + playerIsland.getDisplayName() + " <gray>(" + rank.getDistance() + " BlÃ¶cke)"
+                    "<white>" + rank.getRank() + ". <green>" + playerIsland.getDisplayName() + " <gray>(" + rank.getDistance() + " Blöcke)"
             ));
         }
 

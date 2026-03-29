@@ -3,8 +3,10 @@ package de.joker.randomizer.commands;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import de.joker.randomizer.utils.MessageUtils;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.CompletableFuture;
@@ -18,4 +20,22 @@ public class CommandUtils {
         return builder.buildFuture();
     }
 
+    public static Player getOnlinePlayer(CommandContext<CommandSourceStack> context, String argumentName) {
+        String playerName = context.getArgument(argumentName, String.class);
+        Player player = Bukkit.getPlayerExact(playerName);
+        if (player == null) {
+            MessageUtils.send(context.getSource().getSender(), "<red>Der Spieler " + playerName + " ist nicht online!");
+        }
+        return player;
+    }
+
+    public static Player getPlayerSender(CommandSourceStack source) {
+        CommandSender sender = source.getSender();
+        if (sender instanceof Player player) {
+            return player;
+        }
+
+        MessageUtils.send(sender, "<red>Dieser Befehl kann nur von einem Spieler ausgefÃ¼hrt werden.");
+        return null;
+    }
 }

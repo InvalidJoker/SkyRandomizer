@@ -46,7 +46,6 @@ public class LibraryLoader implements PluginLoader {
                     .map(e -> {
                         var url = e.getValue();
                         if (url.matches("https://repo.maven.apache.org/maven2/")) url = "https://maven-central.storage-download.googleapis.com/maven2";
-//                    System.out.println("Adding repository: " + e.getKey() + " -> " + url);
                         return new RemoteRepository.Builder(e.getKey(), "default", url).build();
                     });
         }
