@@ -66,10 +66,9 @@ public class ItemSpawner {
                     Location island = islandManager.getOrCreateIsland(player);
                     Location spawnLocation = island.clone().add(0.5, 1.25, 0.5);
 
-                    int itemCount = (int) spawnLocation.getWorld().getNearbyEntities(spawnLocation, 1.0, 1.0, 1.0)
-                            .stream()
-                            .filter(entity -> entity instanceof Item)
-                            .count();
+                    int itemCount = spawnLocation.getWorld()
+                            .getNearbyEntities(spawnLocation, 1.0, 1.0, 1.0, entity -> entity instanceof Item)
+                            .size();
 
                     boolean isBlocked = itemCount >= MAX_ITEMS_PER_BLOCK;
 

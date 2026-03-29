@@ -97,13 +97,10 @@ public class IslandManager {
             td.setShadowed(true);
             td.setSeeThrough(false);
             td.setPersistent(false);
+            td.setVisibleByDefault(false);
         });
 
         textDisplays.put(player.getUniqueId(), display.getUniqueId());
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            online.hideEntity(plugin, display);
-        }
-
         player.showEntity(plugin, display);
     }
 
