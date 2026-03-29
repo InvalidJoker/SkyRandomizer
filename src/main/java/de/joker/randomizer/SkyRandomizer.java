@@ -1,7 +1,11 @@
 package de.joker.randomizer;
 
+import de.joker.randomizer.commands.AcceptInviteCommand;
 import de.joker.randomizer.commands.BackCommand;
+import de.joker.randomizer.commands.DeclineInviteCommand;
 import de.joker.randomizer.commands.EcCommand;
+import de.joker.randomizer.commands.InviteCommand;
+import de.joker.randomizer.commands.LeaveCoopCommand;
 import de.joker.randomizer.commands.SpawnCommand;
 import de.joker.randomizer.commands.WbCommand;
 import de.joker.randomizer.data.Database;
@@ -13,8 +17,7 @@ import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.VoidGenerator;
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIPaperConfig;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
@@ -26,10 +29,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
 import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
 @Getter
 public class SkyRandomizer extends JavaPlugin {
+    public static final String SEASON_WORLD_NAME = "season2";
+    public static final String SEASON_DATABASE_NAME = "season2.db";
+
     private ServiceManager serviceManager;
     private ScoreboardLibrary scoreboardLibrary;
 
@@ -40,17 +47,10 @@ public class SkyRandomizer extends JavaPlugin {
     }
 
     @Override
-    public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIPaperConfig(this));
-    }
-
-    @Override
     public void onEnable() {
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }
-
-        CommandAPI.onEnable();
 
         try {
             scoreboardLibrary = ScoreboardLibrary.loadScoreboardLibrary(this);
@@ -72,7 +72,8 @@ public class SkyRandomizer extends JavaPlugin {
         serviceManager = new ServiceManager(database, this);
 
         ItemSpawner itemSpawner = new ItemSpawner(this, serviceManager.getIslandManager());
-        ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
+        ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking(), serviceManager.getIslandCache());
+        serviceManager.setScoreboardManager(scoreboardManager);
         BroadcastManager broadcastManager = new BroadcastManager(this);
 
         Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager), this);
@@ -82,16 +83,20 @@ public class SkyRandomizer extends JavaPlugin {
         itemSpawner.start();
         broadcastManager.start();
 
-        new BackCommand(serviceManager).build().register();
-        new SpawnCommand(serviceManager).build().register();
-        new EcCommand(serviceManager).build().register();
-        new WbCommand(serviceManager).build().register();
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
+            commands.registrar().register(new BackCommand(serviceManager).command(), "Teleport to the farthest point on your island.", List.of("front", "return", "zurueck"));
+            commands.registrar().register(new SpawnCommand(serviceManager).command(), "Teleport to your island spawn.");
+            commands.registrar().register(new EcCommand(serviceManager).command(), "Open your ender chest.", List.of("enderchest", "echest"));
+            commands.registrar().register(new WbCommand(serviceManager).command(), "Open a workbench.", List.of("workbench", "werkbank", "work-bench"));
+            commands.registrar().register(new InviteCommand(serviceManager).command(), "Invite a player to your coop island.");
+            commands.registrar().register(new AcceptInviteCommand(serviceManager).command(), "Accept a coop invitation.");
+            commands.registrar().register(new DeclineInviteCommand(serviceManager).command(), "Decline a coop invitation.");
+            commands.registrar().register(new LeaveCoopCommand(serviceManager).command(), "Leave your current coop island.");
+        });
     }
 
     @Override
     public void onDisable() {
-        CommandAPI.onDisable();
-
         serviceManager.shutdown();
     }
 }

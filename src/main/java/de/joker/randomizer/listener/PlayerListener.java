@@ -1,7 +1,7 @@
 package de.joker.randomizer.listener;
 
 import de.cytooxien.realms.api.RealmPermissionProvider;
-import de.joker.randomizer.data.PlayerData;
+import de.joker.randomizer.data.IslandData;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
@@ -17,12 +17,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.*;
-import org.bukkit.event.player.*;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.util.Vector;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 public class PlayerListener implements Listener {
@@ -40,21 +47,23 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-        serviceManager.getRanking().addPlayerIfNotExists(player.getUniqueId(), player.getName());
+        IslandData islandData = serviceManager.getIslandManager().getIslandData(player);
 
         Bukkit.getScheduler().runTaskLater(serviceManager.getPlugin(), () -> {
             player.teleport(islandCenter.clone().add(0.5, 1, 0.5).setDirection(islandCenter.getDirection().setY(0)));
             lastTeleportTimes.put(player.getUniqueId(), Instant.now());
 
-            PlayerData playerData = serviceManager.getPlayerCache().getPlayer(player.getUniqueId());
-            if (playerData != null && playerData.getDistance() < 4) {
+            serviceManager.getIslandManager().removeDisplay(player);
+            if (islandData != null && islandData.getDistance() < 4) {
                 serviceManager.getIslandManager().createBuildDisplay(player, islandCenter.getBlockX());
             }
 
+            applyIslandProgress(player, islandData == null ? 0 : islandData.getDistance());
             scoreboardManager.showScoreboard(player);
         }, 1L);
 
-        event.joinMessage(MessageUtils.parse("<green>" + player.getName() + " <gray>ist dem Spiel beigetreten!"));
+        event.joinMessage(null);
+        broadcastRaw("player.join", player.getName());
     }
 
     @EventHandler
@@ -64,7 +73,8 @@ public class PlayerListener implements Listener {
         scoreboardManager.removeScoreboard(player);
         lastTeleportTimes.remove(player.getUniqueId());
 
-        event.quitMessage(MessageUtils.parse("<red>" + player.getName() + " <gray>hat das Spiel verlassen!"));
+        event.quitMessage(null);
+        broadcastRaw("player.quit", player.getName());
     }
 
     @EventHandler
@@ -72,10 +82,11 @@ public class PlayerListener implements Listener {
         if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
+
         Player player = event.getPlayer();
         Location from = event.getFrom();
         Location to = event.getTo();
-        if (from.getWorld() == null || !from.getWorld().equals(to.getWorld())) {
+        if (to == null || from.getWorld() == null || !from.getWorld().equals(to.getWorld())) {
             return;
         }
 
@@ -83,7 +94,7 @@ public class PlayerListener implements Listener {
 
         if (to.getY() < 15) {
             teleportToIsland(player, islandCenter);
-            MessageUtils.send(player, "<red>Du bist in die Leere gefallen! Du wirst zurück auf deine Insel teleportiert.");
+            MessageUtils.send(player, "player.void_fall");
             return;
         }
 
@@ -92,7 +103,7 @@ public class PlayerListener implements Listener {
 
         if (Math.abs(deltaX) > 3 || deltaZ < -3) {
             teleportToIsland(player, islandCenter);
-            MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 Blöcke von deiner Insel nach links, rechts oder hinten entfernen!");
+            MessageUtils.send(player, "player.move_limit");
         }
     }
 
@@ -108,13 +119,14 @@ public class PlayerListener implements Listener {
         if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
+
         Player player = event.getPlayer();
         Location blockLoc = event.getBlockPlaced().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
 
         if (blockLoc.getBlockX() == islandCenter.getBlockX() && blockLoc.getBlockZ() == islandCenter.getBlockZ()) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst nicht direkt auf dem Spawn-Block bauen!");
+            MessageUtils.send(player, "player.place_spawn_block");
             return;
         }
 
@@ -129,7 +141,7 @@ public class PlayerListener implements Listener {
 
         event.setCancelled(true);
         teleportToIsland(player, islandCenter);
-        MessageUtils.send(player, "<red>Du kannst dich nicht weiter als 3 Blöcke von deiner Insel nach links, rechts oder hinten entfernen!");
+        MessageUtils.send(player, "player.move_limit");
     }
 
     @EventHandler
@@ -137,10 +149,10 @@ public class PlayerListener implements Listener {
         if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
+
         Player player = event.getPlayer();
         Location blockLoc = event.getBlock().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
@@ -148,12 +160,12 @@ public class PlayerListener implements Listener {
         Block checkBlock = checkLocation.getBlock();
 
         Material[] allowedMaterials = {
-            Material.BEDROCK, Material.BARRIER, Material.AIR, Material.LAVA, Material.WATER
+                Material.BEDROCK, Material.BARRIER, Material.AIR, Material.LAVA, Material.WATER
         };
 
         if (!Arrays.asList(allowedMaterials).contains(checkBlock.getType())) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst keine Blöcke abbauen, die mit deiner Insel verbunden sind!");
+            MessageUtils.send(player, "player.break_connected");
             return;
         }
 
@@ -163,30 +175,34 @@ public class PlayerListener implements Listener {
 
         event.setCancelled(true);
         teleportToIsland(player, islandCenter);
-        MessageUtils.send(player, "<red>Du kannst keine Blöcke außerhalb deiner Insel abbauen!");
+        MessageUtils.send(player, "player.break_outside");
     }
 
-    private void updateDisplay(Player player, int distance) {
+    private void applyIslandProgress(Player player, int distance) {
         RealmPermissionProvider permissionProvider = serviceManager.getPermissionProvider();
-        if (permissionProvider == null) return;
-
-        serviceManager.getIslandManager().modifyPlayerGroup(player, permissionProvider, distance);
+        if (permissionProvider != null) {
+            serviceManager.getIslandManager().modifyPlayerGroup(player, permissionProvider, distance);
+        }
     }
 
     private void updateDistance(Player player, int currentDistance, int islandX, int blockZ) {
-        PlayerData playerData = serviceManager.getPlayerCache().getPlayer(player.getUniqueId());
-        if (playerData == null) {
-            log.warn("PlayerData not found for player {}", player.getName());
+        IslandData islandData = serviceManager.getIslandManager().getIslandData(player);
+        if (islandData == null) {
+            log.warn("IslandData not found for player {}", player.getName());
             return;
         }
 
-        int prevMax = playerData.getDistance();
+        int prevMax = islandData.getDistance();
         if (currentDistance > prevMax) {
-            if (currentDistance >= 4 && prevMax < 4) {
-                serviceManager.getIslandManager().removeDisplay(player);
-            }
-            updateDisplay(player, currentDistance);
             serviceManager.getRanking().updatePlayer(player.getUniqueId(), player.getName(), currentDistance);
+
+            if (currentDistance >= 4 && prevMax < 4) {
+                serviceManager.getIslandManager().removeDisplays(islandData);
+            }
+
+            for (Player onlineMember : serviceManager.getIslandManager().getOnlineMembers(islandData)) {
+                applyIslandProgress(onlineMember, currentDistance);
+            }
 
             for (int y = 59; y <= 80; y++) {
                 Location barrierLocation = new Location(player.getWorld(), islandX + 4, y, blockZ);
@@ -203,7 +219,9 @@ public class PlayerListener implements Listener {
             Instant lastTeleport = lastTeleportTimes.get(player.getUniqueId());
             if (lastTeleport != null && Instant.now().minusSeconds(3).isBefore(lastTeleport)) {
                 event.setCancelled(true);
-                player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
+                if (player.getAttribute(Attribute.MAX_HEALTH) != null) {
+                    player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
+                }
                 player.setFallDistance(0f);
                 player.setVelocity(new Vector(0, 0, 0));
             }
@@ -223,7 +241,15 @@ public class PlayerListener implements Listener {
         player.teleport(islandCenter.clone().add(0.5, 1, 0.5).setDirection(islandCenter.getDirection().setY(0)));
         player.setFallDistance(0f);
         player.setVelocity(new Vector(0, 0, 0));
-        player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
+        if (player.getAttribute(Attribute.MAX_HEALTH) != null) {
+            player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
+        }
         lastTeleportTimes.put(player.getUniqueId(), Instant.now());
+    }
+
+    private void broadcastRaw(String key, String playerName) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            MessageUtils.sendRaw(onlinePlayer, key, MessageUtils.placeholder("player", playerName));
+        }
     }
 }

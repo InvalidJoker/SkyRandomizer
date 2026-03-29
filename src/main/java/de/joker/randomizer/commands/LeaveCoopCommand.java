@@ -2,31 +2,27 @@ package de.joker.randomizer.commands;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.joker.randomizer.manager.ServiceManager;
-import de.joker.randomizer.utils.MessageUtils;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.entity.Player;
 
-public class WbCommand {
+public class LeaveCoopCommand {
+
     private final ServiceManager serviceManager;
 
-    public WbCommand(ServiceManager serviceManager) {
+    public LeaveCoopCommand(ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
     }
 
     public LiteralCommandNode<CommandSourceStack> command() {
-        return Commands.literal("wb")
+        return Commands.literal("leavecoop")
                 .executes(context -> {
-                    Player player = CommandUtils.getPlayerSender(context.getSource());
-                    if (player == null) {
+                    Player source = CommandUtils.getPlayerSender(context.getSource());
+                    if (source == null) {
                         return 0;
                     }
 
-                    if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "command.booster_required");
-                        return 0;
-                    }
-                    player.openWorkbench(null, true);
+                    serviceManager.getCoopManager().leaveCoop(source);
                     return 1;
                 })
                 .build();

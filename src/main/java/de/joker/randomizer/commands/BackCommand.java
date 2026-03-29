@@ -1,13 +1,16 @@
 package de.joker.randomizer.commands;
 
-import de.joker.randomizer.data.PlayerRank;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import de.joker.randomizer.data.IslandData;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
-import dev.jorel.commandapi.CommandTree;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -22,39 +25,41 @@ public class BackCommand {
         this.serviceManager = serviceManager;
     }
 
-    public CommandTree build() {
-        return new CommandTree("back")
-                .withAliases("front", "return", "zurück")
-                .executesPlayer((player, args) -> {
+    public LiteralCommandNode<CommandSourceStack> command() {
+        return Commands.literal("back")
+                .executes(context -> {
+                    Player player = CommandUtils.getPlayerSender(context.getSource());
+                    if (player == null) {
+                        return 0;
+                    }
+
                     if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
-                        return;
+                        MessageUtils.send(player, "command.booster_required");
+                        return 0;
                     }
                     if (!serviceManager.getIslandManager().hasIsland(player)) {
-                        MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurückkehren kannst!");
-                        return;
+                        MessageUtils.send(player, "command.back.no_island");
+                        return 0;
                     }
 
                     Instant lastTeleport = cooldownMap.get(player.getUniqueId());
                     Instant now = Instant.now();
                     if (lastTeleport != null && now.isBefore(lastTeleport.plusSeconds(30)) && !player.hasPermission("realms.bypass")) {
-                        MessageUtils.send(player, "<red>Du kannst erst in 30 Sekunden wieder zurück teleportieren!");
-                        return;
+                        MessageUtils.send(player, "command.back.cooldown", MessageUtils.placeholder("seconds", 30));
+                        return 0;
                     }
 
                     Location location = serviceManager.getIslandManager().getOrCreateIsland(player);
-
                     World world = location.getWorld();
                     int startX = location.getBlockX();
                     int startZ = location.getBlockZ();
-                    PlayerRank rank = serviceManager.getRanking().getRankOfPlayer(player.getUniqueId());
+                    IslandData rank = serviceManager.getRanking().getIslandOfPlayer(player.getUniqueId());
                     if (rank == null) {
-                        MessageUtils.send(player, "<red>Dein Rang konnte nicht ermittelt werden!");
-                        return;
+                        MessageUtils.send(player, "command.back.rank_missing");
+                        return 0;
                     }
-                    int maxDistance = rank.getDistance();
-                    int targetZ = startZ + maxDistance;
 
+                    int targetZ = startZ + rank.getDistance();
                     int lastGoodX = Integer.MIN_VALUE;
                     int lastGoodY = -1;
 
@@ -77,8 +82,8 @@ public class BackCommand {
                     }
 
                     if (lastGoodY == -1) {
-                        MessageUtils.send(player, "<red>Es wurde kein solider Block gefunden, zu dem du teleportiert werden kannst!");
-                        return;
+                        MessageUtils.send(player, "command.back.no_solid_block");
+                        return 0;
                     }
 
                     Location teleportLocation = new Location(
@@ -93,8 +98,10 @@ public class BackCommand {
                     player.teleport(teleportLocation);
                     player.setFallDistance(0f);
                     cooldownMap.put(player.getUniqueId(), now);
-                    player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
-                    MessageUtils.send(player, "<green>Du wurdest zu deinem letzten Standort auf deiner Insel teleportiert!");
-                });
+                    player.setVelocity(new Vector(0, 0, 0));
+                    MessageUtils.send(player, "command.back.teleported");
+                    return 1;
+                })
+                .build();
     }
 }

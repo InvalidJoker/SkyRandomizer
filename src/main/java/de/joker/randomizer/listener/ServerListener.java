@@ -1,7 +1,6 @@
 package de.joker.randomizer.listener;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
 import org.bukkit.GameRules;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

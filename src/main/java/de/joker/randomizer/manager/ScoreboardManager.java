@@ -1,8 +1,8 @@
 package de.joker.randomizer.manager;
 
 import de.joker.randomizer.SkyRandomizer;
-import de.joker.randomizer.data.PlayerData;
-import de.joker.randomizer.data.PlayerRank;
+import de.joker.randomizer.cache.IslandCache;
+import de.joker.randomizer.data.IslandData;
 import de.joker.randomizer.data.Ranking;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -10,20 +10,24 @@ import net.megavex.scoreboardlibrary.api.sidebar.Sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class ScoreboardManager {
 
     private final SkyRandomizer plugin;
     private final Ranking ranking;
+    private final IslandCache islandCache;
     private final Map<Player, Sidebar> scoreboards;
 
-    public ScoreboardManager(SkyRandomizer plugin, Ranking ranking) {
+    public ScoreboardManager(SkyRandomizer plugin, Ranking ranking, IslandCache islandCache) {
         this.plugin = plugin;
         this.ranking = ranking;
-        this.scoreboards = new java.util.HashMap<>();
+        this.islandCache = islandCache;
+        this.scoreboards = new HashMap<>();
     }
 
     public void updateForAllPlayers() {
@@ -42,66 +46,51 @@ public class ScoreboardManager {
     }
 
     public void showScoreboard(Player player) {
-        Sidebar sidebar = scoreboards.get(player);
-        if (sidebar == null) {
-            sidebar = plugin.getScoreboardLibrary().createSidebar();
-            scoreboards.put(player, sidebar);
-        }
+        Sidebar sidebar = scoreboards.computeIfAbsent(player, ignored -> plugin.getScoreboardLibrary().createSidebar());
 
         sidebar.title(MessageUtils.parse(MessageUtils.getName()));
-
         sidebar.clearLines();
 
-        PlayerRank rank = ranking.getRankOfPlayer(player.getUniqueId());
-        List<PlayerData> topPlayers = ranking.getTop3();
+        IslandData playerIsland = ranking.getIslandOfPlayer(player.getUniqueId());
+        List<IslandData> topIslands = ranking.getTop3();
 
-        if (rank == null) {
+        if (playerIsland == null) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> showScoreboard(player), 40L);
             return;
         }
 
-        sidebar.line(0,
-                MessageUtils.parse("<gray>Distanz: <white>")
-        );
-        sidebar.line(1,
-                MessageUtils.parse(
-                        "<white>" + rank.getDistance() + " Blöcke"
-                )
-        );
-        sidebar.line(2,
-                MessageUtils.parse("")
-        );
-        sidebar.line(3,
-                MessageUtils.parse("<gray>Rangliste: <white>")
-        );
-        for (int i = 0; i < topPlayers.size(); i++) {
-            PlayerData playerData = topPlayers.get(i);
+        Integer rank = islandCache.getIslandRank(playerIsland.getId()).orElse(999);
+
+
+        sidebar.line(0, MessageUtils.component(player, "scoreboard.distance_label"));
+        sidebar.line(1, MessageUtils.component(player, "scoreboard.distance_value", MessageUtils.placeholder("distance", playerIsland.getDistance())));
+        sidebar.line(2, MessageUtils.parse(""));
+        sidebar.line(3, MessageUtils.component(player, "scoreboard.top_label"));
+
+        for (int i = 0; i < topIslands.size(); i++) {
+            IslandData islandData = topIslands.get(i);
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            String playerColor = playerData.getUuid().equals(player.getUniqueId()) ? "<green>" : "<white>";
-            sidebar.line(4 + i,
-                    MessageUtils.parse(
-                            rankColor + (i + 1) + ". " + playerColor + playerData.getName() + " <gray>(" + playerData.getDistance() + " Blöcke)"
-                    )
-            );
+            String nameColor = islandData.getId() == playerIsland.getId() ? "<green>" : "<white>";
+            sidebar.line(4 + i, MessageUtils.component(player, "scoreboard.entry",
+                    MessageUtils.placeholder("rank_color", rankColor),
+                    MessageUtils.placeholder("rank", i + 1),
+                    MessageUtils.placeholder("name_color", nameColor),
+                    MessageUtils.placeholder("name", islandData.getDisplayName()),
+                    MessageUtils.placeholder("distance", islandData.getDistance())));
         }
 
-        for (int i = topPlayers.size(); i < 3; i++) {
+        for (int i = topIslands.size(); i < 3; i++) {
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            sidebar.line(4 + i,
-                    MessageUtils.parse(
-                            rankColor + (i + 1) + ". <white> - <gray>(0 Blöcke)"
-                    )
-            );
+            sidebar.line(4 + i, MessageUtils.component(player, "scoreboard.empty_entry",
+                    MessageUtils.placeholder("rank_color", rankColor),
+                    MessageUtils.placeholder("rank", i + 1)));
         }
 
-        if (topPlayers.stream().noneMatch(pd -> pd.getUuid().equals(player.getUniqueId()))) {
-            sidebar.line(4 + topPlayers.size(),
-                    MessageUtils.parse(
-                            "<white>" + (
-                                    rank.getRank() + 1
-                            ) + ". <green>" + player.getName() + " <gray>(" + rank.getDistance() + " Blöcke)"
-                    )
-            );
+        if (topIslands.stream().noneMatch(island -> island.getId() == playerIsland.getId())) {
+            sidebar.line(4 + topIslands.size(), MessageUtils.component(player, "scoreboard.self_entry",
+                    MessageUtils.placeholder("rank", rank),
+                    MessageUtils.placeholder("name", playerIsland.getDisplayName()),
+                    MessageUtils.placeholder("distance", playerIsland.getDistance())));
         }
 
         sidebar.addPlayer(player);

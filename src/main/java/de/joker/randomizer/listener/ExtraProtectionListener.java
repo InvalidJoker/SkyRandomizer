@@ -12,8 +12,13 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.*;
-import org.bukkit.event.player.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.Arrays;
 
@@ -24,7 +29,6 @@ public class ExtraProtectionListener implements Listener {
 
     public ExtraProtectionListener(ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
-
     }
 
     @EventHandler
@@ -42,7 +46,7 @@ public class ExtraProtectionListener implements Listener {
 
             if (Math.abs(deltaX) > 3 || deltaZ < -3) {
                 event.setCancelled(true);
-                MessageUtils.send(shooter, "<red>Du kannst nicht außerhalb deiner Insel angreifen!");
+                MessageUtils.send(shooter, "protection.attack_outside");
             }
         }
     }
@@ -55,13 +59,12 @@ public class ExtraProtectionListener implements Listener {
 
         Location hitLoc = event.getEntity().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(shooter);
-
         int deltaX = hitLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = hitLoc.getBlockZ() - islandCenter.getBlockZ();
 
         if (Math.abs(deltaX) > 3 || deltaZ < -3) {
             event.setCancelled(true);
-            MessageUtils.send(shooter, "<red>Du kannst nicht außerhalb deiner Insel schießen!");
+            MessageUtils.send(shooter, "protection.shoot_outside");
         }
     }
 
@@ -70,16 +73,16 @@ public class ExtraProtectionListener implements Listener {
         if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
+
         Player player = event.getPlayer();
         Location blockLoc = event.getBlockClicked().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
         if (Math.abs(deltaX) > 3 || deltaZ < -3) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst keine Eimer außerhalb deiner Insel leeren!");
+            MessageUtils.send(player, "protection.bucket_empty_outside");
         }
     }
 
@@ -96,25 +99,22 @@ public class ExtraProtectionListener implements Listener {
                 Material.BEDROCK, Material.BARRIER, Material.AIR, Material.LAVA, Material.WATER
         };
 
-        if (
-                !Arrays.asList(allowedMaterials).contains(checkBlock.getType()) &&
-                        event.getBlockClicked().getType() == Material.POWDER_SNOW
-        ) {
+        if (!Arrays.asList(allowedMaterials).contains(checkBlock.getType())
+                && event.getBlockClicked().getType() == Material.POWDER_SNOW) {
             event.setCancelled(true);
-            MessageUtils.send(event.getPlayer(), "<red>Du kannst keine Blöcke abbauen, die mit deiner Insel verbunden sind!");
+            MessageUtils.send(event.getPlayer(), "protection.break_connected");
             return;
         }
 
         Player player = event.getPlayer();
         Location blockLoc = event.getBlockClicked().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-
         int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
         if (Math.abs(deltaX) > 3 || deltaZ < -3) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst keine Eimer außerhalb deiner Insel füllen!");
+            MessageUtils.send(player, "protection.bucket_fill_outside");
         }
     }
 
@@ -124,16 +124,16 @@ public class ExtraProtectionListener implements Listener {
             if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
                 return;
             }
+
             Player player = event.getPlayer();
             Location blockLoc = event.getClickedBlock().getLocation();
             Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-
             int deltaX = blockLoc.getBlockX() - islandCenter.getBlockX();
             int deltaZ = blockLoc.getBlockZ() - islandCenter.getBlockZ();
 
             if (Math.abs(deltaX) > 3 || deltaZ < -3) {
                 event.setCancelled(true);
-                MessageUtils.send(player, "<red>Du kannst nicht außerhalb deiner Insel interagieren!");
+                MessageUtils.send(player, "protection.interact_outside");
             }
         }
     }
@@ -143,16 +143,16 @@ public class ExtraProtectionListener implements Listener {
         if (SpectatorUtils.isSpectatorMode(event.getPlayer())) {
             return;
         }
+
         Player player = event.getPlayer();
         Location dropLoc = event.getItemDrop().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-
         int deltaX = dropLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = dropLoc.getBlockZ() - islandCenter.getBlockZ();
 
         if (Math.abs(deltaX) > 3 || deltaZ < -3) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst keine Items außerhalb deiner Insel droppen!");
+            MessageUtils.send(player, "protection.drop_outside");
         }
     }
 
@@ -164,13 +164,12 @@ public class ExtraProtectionListener implements Listener {
 
         Location itemLoc = event.getItem().getLocation();
         Location islandCenter = serviceManager.getIslandManager().getOrCreateIsland(player);
-
         int deltaX = itemLoc.getBlockX() - islandCenter.getBlockX();
         int deltaZ = itemLoc.getBlockZ() - islandCenter.getBlockZ();
 
         if (Math.abs(deltaX) > 3 || deltaZ < -3) {
             event.setCancelled(true);
-            MessageUtils.send(player, "<red>Du kannst keine Items außerhalb deiner Insel aufsammeln!");
+            MessageUtils.send(player, "protection.pickup_outside");
         }
     }
 }

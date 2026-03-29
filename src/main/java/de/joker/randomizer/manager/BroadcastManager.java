@@ -4,6 +4,7 @@ import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.utils.MessageUtils;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
@@ -15,10 +16,10 @@ public class BroadcastManager {
     private final SkyRandomizer plugin;
     private final Random random = new Random();
 
-    private static final List<String> MESSAGES = List.of(
-            "<gradient:#FFAA00:#FFDD55>Vergiss nicht, deine Insel regelmäßig auszubauen!",
-            "<gradient:#55FF55:#AAFFAA><color:#C678DD><bold>Booste</bold></color> den Realm, um coole Vorteile wie <gold>/back</gold> oder eine <italic>kürzere Wartezeit</italic> zu erhalten!</gradient>",
-            "<gradient:#55FFFF:#AAFFFF>Spiele fair und habe Spaß!"
+    private static final List<String> MESSAGE_KEYS = List.of(
+            "broadcast.reminder_expand_island",
+            "broadcast.booster_benefits",
+            "broadcast.play_fair"
     );
 
     public void start() {
@@ -38,7 +39,10 @@ public class BroadcastManager {
     }
 
     private void broadcastRandomMessage() {
-        String message = MESSAGES.get(random.nextInt(MESSAGES.size()));
-        Bukkit.broadcast(MessageUtils.parse(message));
+        String message = MESSAGE_KEYS.get(random.nextInt(MESSAGE_KEYS.size()));
+
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            MessageUtils.sendRaw(onlinePlayer, message);
+        }
     }
 }

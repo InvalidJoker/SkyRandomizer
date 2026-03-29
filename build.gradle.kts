@@ -8,7 +8,7 @@ import org.gradle.api.JavaVersion.VERSION_21
 plugins {
     id("java")
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.18"
-    id("de.eldoria.plugin-yml.paper") version "0.8.0"
+    id("de.eldoria.plugin-yml.paper") version "0.9.0"
     id("com.gradleup.shadow") version "8.3.6"
 }
 
@@ -18,8 +18,6 @@ version = "1.0-SNAPSHOT"
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven { url = uri("https://repo.codemc.io/repository/maven-releases/") }
-    maven { url = uri("https://repo.codemc.io/repository/maven-snapshots/") }
     maven { url = uri("https://jitpack.io") }
 }
 
@@ -38,8 +36,6 @@ dependencies {
     runtimeOnly("net.megavex:scoreboard-library-implementation:2.7.0")
 
     compileOnly("com.github.cytooxien:realms-api:4.0.1")
-
-    implementation("dev.jorel:commandapi-paper-shade:11.1.0")
 }
 
 
@@ -76,7 +72,6 @@ tasks {
         archiveFileName.set("${project.name}.jar")
         minimize {
             exclude(dependency("net.megavex:scoreboard-library-.*:.*"))
-            exclude(dependency("dev.jorel:commandapi-.*:.*"))
             exclude(dependency("org.xerial:sqlite-jdbc:.*"))
         }
 
@@ -86,7 +81,9 @@ tasks {
 
         relocate("net.megavex.scoreboardlibrary", "de.joker.randomizer.scoreboardlibrary")
     }
-
+    generatePaperPluginDescription {
+        useDefaultCentralProxy()
+    }
 }
 
 paper {

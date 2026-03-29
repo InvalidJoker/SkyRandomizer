@@ -1,8 +1,11 @@
 package de.joker.randomizer.commands;
 
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.MessageUtils;
-import dev.jorel.commandapi.CommandTree;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import io.papermc.paper.command.brigadier.Commands;
+import org.bukkit.entity.Player;
 
 public class EcCommand {
     private final ServiceManager serviceManager;
@@ -11,15 +14,21 @@ public class EcCommand {
         this.serviceManager = serviceManager;
     }
 
-    public CommandTree build() {
-        return new CommandTree("ec")
-                .withAliases("enderchest", "echest")
-                .executesPlayer((player, args) -> {
+    public LiteralCommandNode<CommandSourceStack> command() {
+        return Commands.literal("ec")
+                .executes(context -> {
+                    Player player = CommandUtils.getPlayerSender(context.getSource());
+                    if (player == null) {
+                        return 0;
+                    }
+
                     if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
-                        return;
+                        MessageUtils.send(player, "command.booster_required");
+                        return 0;
                     }
                     player.openInventory(player.getEnderChest());
-                });
+                    return 1;
+                })
+                .build();
     }
 }
