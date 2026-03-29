@@ -4,25 +4,25 @@ import de.cytooxien.realms.api.RealmInformationProvider;
 import de.joker.randomizer.SkyRandomizer;
 import de.joker.randomizer.data.IslandData;
 import de.joker.randomizer.utils.MessageUtils;
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.bossbar.BossBar;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemType;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("UnstableApiUsage")
 @Slf4j
@@ -131,8 +131,7 @@ public class ItemSpawner {
             return;
         }
 
-        ItemType randomItem = getRandomMaterial();
-        Item item = spawnLocation.getWorld().dropItem(spawnLocation, randomItem.createItemStack(1));
+        Item item = spawnLocation.getWorld().dropItem(spawnLocation, getRandomMaterial());
         item.setVelocity(new Vector(0.0, 0.0, 0.0));
     }
 
@@ -170,38 +169,51 @@ public class ItemSpawner {
         }
     }
 
-    private static final Set<ItemType> BLACKLIST = Set.of(
-            ItemType.BARRIER,
-            ItemType.DEBUG_STICK,
-            ItemType.COMMAND_BLOCK,
-            ItemType.STRUCTURE_VOID,
-            ItemType.STRUCTURE_BLOCK,
-            ItemType.BEDROCK,
-            ItemType.AIR,
-            ItemType.PLAYER_HEAD,
-            ItemType.CHAIN_COMMAND_BLOCK,
-            ItemType.REPEATING_COMMAND_BLOCK,
-            ItemType.JIGSAW,
-            ItemType.COMMAND_BLOCK_MINECART,
-            ItemType.ENDER_DRAGON_SPAWN_EGG,
-            ItemType.DRAGON_EGG,
-            ItemType.WITHER_SPAWN_EGG,
-            ItemType.WITHER_SKELETON_SKULL,
-            ItemType.GHAST_SPAWN_EGG,
-            ItemType.ENDERMAN_SPAWN_EGG,
-            ItemType.VEX_SPAWN_EGG,
-            ItemType.VINDICATOR_SPAWN_EGG,
-            ItemType.PHANTOM_SPAWN_EGG,
-            ItemType.ELDER_GUARDIAN_SPAWN_EGG,
-            ItemType.BLAZE_SPAWN_EGG,
-            ItemType.WARDEN_SPAWN_EGG,
-            ItemType.LIGHT
+    private static final Set<Material> BLACKLIST = Set.of(
+            Material.BARRIER,
+            Material.BEDROCK,
+            Material.PLAYER_HEAD,
+            Material.ENDER_DRAGON_SPAWN_EGG,
+            Material.DRAGON_EGG,
+            Material.WITHER_SPAWN_EGG,
+            Material.WITHER_SKELETON_SKULL,
+            Material.GHAST_SPAWN_EGG,
+            Material.ENDERMAN_SPAWN_EGG,
+            Material.VEX_SPAWN_EGG,
+            Material.VINDICATOR_SPAWN_EGG,
+            Material.PHANTOM_SPAWN_EGG,
+            Material.ELDER_GUARDIAN_SPAWN_EGG,
+            Material.BLAZE_SPAWN_EGG,
+            Material.WARDEN_SPAWN_EGG,
+            Material.LIGHT
     );
 
-    private ItemType getRandomMaterial() {
-        var reg = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM);
-        var items = reg.stream()
-                .filter(item -> !BLACKLIST.contains(item));
-        return items.skip(random.nextInt(reg.size())).findFirst().orElse(ItemType.STONE);
+    private static final Set<String> ignoredCategories = Set.of(
+            "itemGroup.op",
+            "itemGroup.search",
+            "itemGroup.inventory",
+            "itemGroup.hotbar",
+            "itemGroup.ingredients"
+    );
+
+    private ItemStack getRandomMaterial() {
+        List<ItemStack> items = CreativeModeTabs.allTabs().stream()
+                .peek(creativeModeTab -> creativeModeTab.buildContents(new CreativeModeTab.ItemDisplayParameters(FeatureFlags.DEFAULT_FLAGS, true, DedicatedServer.getServer().registryAccess())))
+                .filter(creativeModeTab -> {
+
+                    if (creativeModeTab.getDisplayName().getContents() instanceof TranslatableContents translatableContents)
+                        return !ignoredCategories.contains(translatableContents.getKey());
+                    return true;
+                })
+                .flatMap(creativeModeTab -> creativeModeTab.getDisplayItems().stream())
+                .filter(Objects::nonNull)
+                .map(CraftItemStack::asBukkitCopy)
+                .collect(Collectors.toSet())
+                .stream()
+                .filter(itemStack -> !itemStack.getType().isAir())
+                .filter(itemStack -> !BLACKLIST.contains(itemStack.getType()))
+                .toList();
+
+        return items.get(random.nextInt(items.size()));
     }
 }

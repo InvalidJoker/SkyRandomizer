@@ -9,7 +9,7 @@ Man joined als adventure aber kann fliegen und hat keine collisions zu z.B. barr
 
 ## Season 2 Ideen:
 
-- Multiplayer?
+- Multiplayer? ✅
   - /invite <player> - Spieler einladen zu Multiplayer
   - /acceptinvite <player> - Einladung annehmen
   - /declineinvite <player> - Einladung ablehnen
@@ -19,10 +19,10 @@ Man joined als adventure aber kann fliegen und hat keine collisions zu z.B. barr
   - Maximal zu 4t
   - Wir speichern nicht mehr als "playerdata", alles sind nun inseln wo man member ist
 - Rank System verbessern
-- Language System (i18n)
-- Database Konzept überarbeiten
-- Item Blocklist erweitern
-- Nachrichten generell verschönern
-- Alles resetten
+- Language System (i18n) ✅
+- Database Konzept überarbeiten ✅
+- Item Blocklist erweitern ✅
+- Nachrichten generell verschönern ✅
+- Alles resetten ✅
 
 - Shop von Paul???
