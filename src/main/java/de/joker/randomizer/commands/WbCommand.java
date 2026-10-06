@@ -1,25 +1,32 @@
 package de.joker.randomizer.commands;
 
 import de.joker.randomizer.manager.ServiceManager;
-import de.joker.randomizer.utils.MessageUtils;
-import dev.jorel.commandapi.CommandTree;
+import org.bukkit.entity.Player;
 
-public class WbCommand {
-    private final ServiceManager serviceManager;
+import java.util.List;
+
+public class WbCommand extends AbstractCommand {
 
     public WbCommand(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
+        super(serviceManager);
     }
 
-    public CommandTree build() {
-        return new CommandTree("wb")
-                .withAliases("workbench", "werkbank", "work-bench")
-                .executesPlayer((player, args) -> {
-                    if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
-                        return;
-                    }
-                    player.openWorkbench(null, true);
-                });
+    @Override
+    protected String name() {
+        return "wb";
+    }
+
+    @Override
+    protected List<String> aliases() {
+        return List.of(
+                "workbench",
+                "werkbank",
+                "work-bench"
+        );
+    }
+
+    @Override
+    protected void execute(Player player) {
+        player.openWorkbench(null, true);
     }
 }

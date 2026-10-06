@@ -1,9 +1,6 @@
 package de.joker.randomizer;
 
-import de.joker.randomizer.commands.BackCommand;
-import de.joker.randomizer.commands.EcCommand;
-import de.joker.randomizer.commands.SpawnCommand;
-import de.joker.randomizer.commands.WbCommand;
+import de.joker.randomizer.commands.*;
 import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
@@ -13,8 +10,8 @@ import de.joker.randomizer.manager.ItemSpawner;
 import de.joker.randomizer.manager.ScoreboardManager;
 import de.joker.randomizer.manager.ServiceManager;
 import de.joker.randomizer.utils.VoidGenerator;
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIPaperConfig;
+import io.papermc.paper.command.brigadier.Commands;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.megavex.scoreboardlibrary.api.ScoreboardLibrary;
@@ -40,17 +37,10 @@ public class SkyRandomizer extends JavaPlugin {
     }
 
     @Override
-    public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIPaperConfig(this));
-    }
-
-    @Override
     public void onEnable() {
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }
-
-        CommandAPI.onEnable();
 
         try {
             scoreboardLibrary = ScoreboardLibrary.loadScoreboardLibrary(this);
@@ -82,16 +72,48 @@ public class SkyRandomizer extends JavaPlugin {
         itemSpawner.start();
         broadcastManager.start();
 
-        new BackCommand(serviceManager).build().register();
-        new SpawnCommand(serviceManager).build().register();
-        new EcCommand(serviceManager).build().register();
-        new WbCommand(serviceManager).build().register();
+        registerCommands();
+    }
+
+    private void registerCommands() {
+        getLifecycleManager().registerEventHandler(
+                LifecycleEvents.COMMANDS,
+                event -> {
+
+                    Commands commands = event.registrar();
+
+                    register(
+                            commands,
+                            new EcCommand(serviceManager)
+                    );
+
+                    register(
+                            commands,
+                            new WbCommand(serviceManager)
+                    );
+
+                    register(
+                            commands,
+                            new SpawnCommand(serviceManager)
+                    );
+
+                    register(
+                            commands,
+                            new BackCommand(serviceManager)
+                    );
+                }
+        );
+    }
+
+    private void register(
+            Commands commands,
+            AbstractCommand command
+    ) {
+        command.register(commands);
     }
 
     @Override
     public void onDisable() {
-        CommandAPI.onDisable();
-
         serviceManager.shutdown();
     }
 }

@@ -1,38 +1,49 @@
 package de.joker.randomizer.commands;
 
 import de.joker.randomizer.manager.ServiceManager;
-import de.joker.randomizer.utils.MessageUtils;
-import dev.jorel.commandapi.CommandTree;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class SpawnCommand {
-    private final ServiceManager serviceManager;
+public class SpawnCommand extends AbstractCommand {
 
     public SpawnCommand(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
+        super(serviceManager);
     }
 
-    public CommandTree build() {
-        return new CommandTree("spawn")
-                .executesPlayer((player, args) -> {
-                    if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
-                        return;
-                    }
-                    if (!serviceManager.getIslandManager().hasIsland(player)) {
-                        MessageUtils.send(player, "<red>Du hast keine Insel, zu der du zurückkehren kannst!");
-                        return;
-                    }
+    @Override
+    protected String name() {
+        return "spawn";
+    }
 
-                    Location location = serviceManager.getIslandManager().getOrCreateIsland(player);
-                    player.teleport(location.clone().add(0.5, 1, 0.5).setDirection(location.getDirection().setY(0)));
-                    player.setFallDistance(0f);
-                    player.setVelocity(new Vector(0, 0, 0));
-                    player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
+    @Override
+    protected boolean requiresIsland() {
+        return true;
+    }
 
-                    MessageUtils.send(player, "<green>Du wurdest zurück zu deiner Insel teleportiert!");
-                });
+    @Override
+    protected void execute(Player player) {
+        Location location =
+                serviceManager.getIslandManager().getOrCreateIsland(player);
+
+        player.teleport(
+                location.clone()
+                        .add(0.5, 1, 0.5)
+                        .setDirection(location.getDirection().setY(0))
+        );
+
+        player.setFallDistance(0f);
+        player.setVelocity(new Vector(0, 0, 0));
+
+        var maxHealth = player.getAttribute(Attribute.MAX_HEALTH);
+
+        if (maxHealth != null) {
+            player.setHealth(maxHealth.getValue());
+        }
+
+        player.sendRichMessage(
+                "<green>Du wurdest zurück zu deiner Insel teleportiert!"
+        );
     }
 }

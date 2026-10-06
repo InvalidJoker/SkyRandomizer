@@ -1,25 +1,31 @@
 package de.joker.randomizer.commands;
 
 import de.joker.randomizer.manager.ServiceManager;
-import de.joker.randomizer.utils.MessageUtils;
-import dev.jorel.commandapi.CommandTree;
+import org.bukkit.entity.Player;
 
-public class EcCommand {
-    private final ServiceManager serviceManager;
+import java.util.List;
+
+public class EcCommand extends AbstractCommand {
 
     public EcCommand(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
+        super(serviceManager);
     }
 
-    public CommandTree build() {
-        return new CommandTree("ec")
-                .withAliases("enderchest", "echest")
-                .executesPlayer((player, args) -> {
-                    if (!serviceManager.isBooster(player)) {
-                        MessageUtils.send(player, "<color:#C678DD><bold>Booste</bold><red> diesen Realm, um Zugriff auf diesen Befehl zu erhalten!");
-                        return;
-                    }
-                    player.openInventory(player.getEnderChest());
-                });
+    @Override
+    protected String name() {
+        return "ec";
+    }
+
+    @Override
+    protected List<String> aliases() {
+        return List.of(
+                "enderchest",
+                "echest"
+        );
+    }
+
+    @Override
+    protected void execute(Player player) {
+        player.openInventory(player.getEnderChest());
     }
 }
