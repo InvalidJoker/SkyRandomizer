@@ -53,6 +53,7 @@ public class ScoreboardManager {
         sidebar.clearLines();
 
         PlayerRank rank = ranking.getRankOfPlayer(player.getUniqueId());
+        PlayerData playerData = plugin.getServiceManager().getPlayerCache().getPlayer(player.getUniqueId());
         List<PlayerData> topPlayers = ranking.getTop3();
 
         if (rank == null) {
@@ -72,22 +73,33 @@ public class ScoreboardManager {
                 MessageUtils.parse("")
         );
         sidebar.line(3,
+                MessageUtils.parse("<gray>Coins: <white>")
+        );
+        sidebar.line(4,
+                MessageUtils.parse(
+                        "<white>" + (playerData.getCoins()) + " Coins"
+                )
+        );
+        sidebar.line(5,
+                MessageUtils.parse("")
+        );
+        sidebar.line(6,
                 MessageUtils.parse("<gray>Rangliste: <white>")
         );
         for (int i = 0; i < topPlayers.size(); i++) {
-            PlayerData playerData = topPlayers.get(i);
+            PlayerData targetData = topPlayers.get(i);
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            String playerColor = playerData.getUuid().equals(player.getUniqueId()) ? "<green>" : "<white>";
-            sidebar.line(4 + i,
+            String playerColor = targetData.getUuid().equals(player.getUniqueId()) ? "<green>" : "<white>";
+            sidebar.line(7 + i,
                     MessageUtils.parse(
-                            rankColor + (i + 1) + ". " + playerColor + playerData.getName() + " <gray>(" + playerData.getDistance() + " Blöcke)"
+                            rankColor + (i + 1) + ". " + playerColor + targetData.getName() + " <gray>(" + targetData.getDistance() + " Blöcke)"
                     )
             );
         }
 
         for (int i = topPlayers.size(); i < 3; i++) {
             String rankColor = (i == 0) ? "<gold>" : (i == 1) ? "<#A9A9A9>" : (i == 2) ? "<#B08D57>" : "<white>";
-            sidebar.line(4 + i,
+            sidebar.line(7 + i,
                     MessageUtils.parse(
                             rankColor + (i + 1) + ". <white> - <gray>(0 Blöcke)"
                     )
@@ -95,7 +107,7 @@ public class ScoreboardManager {
         }
 
         if (topPlayers.stream().noneMatch(pd -> pd.getUuid().equals(player.getUniqueId()))) {
-            sidebar.line(4 + topPlayers.size(),
+            sidebar.line(7 + topPlayers.size(),
                     MessageUtils.parse(
                             "<white>" + (
                                     rank.getRank() + 1

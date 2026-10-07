@@ -5,10 +5,7 @@ import de.joker.randomizer.data.Database;
 import de.joker.randomizer.listener.ExtraProtectionListener;
 import de.joker.randomizer.listener.PlayerListener;
 import de.joker.randomizer.listener.ServerListener;
-import de.joker.randomizer.manager.BroadcastManager;
-import de.joker.randomizer.manager.ItemSpawner;
-import de.joker.randomizer.manager.ScoreboardManager;
-import de.joker.randomizer.manager.ServiceManager;
+import de.joker.randomizer.manager.*;
 import de.joker.randomizer.utils.VoidGenerator;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
@@ -65,7 +62,10 @@ public class SkyRandomizer extends JavaPlugin {
         ScoreboardManager scoreboardManager = new ScoreboardManager(this, serviceManager.getRanking());
         BroadcastManager broadcastManager = new BroadcastManager(this);
 
-        Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager), this);
+        CoinManager coinManager = new CoinManager(this, scoreboardManager);
+        coinManager.startTask();
+
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(serviceManager, scoreboardManager, coinManager), this);
         Bukkit.getPluginManager().registerEvents(new ExtraProtectionListener(serviceManager), this);
         Bukkit.getPluginManager().registerEvents(new ServerListener(), this);
 
